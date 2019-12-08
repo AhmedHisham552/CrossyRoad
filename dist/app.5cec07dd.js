@@ -10048,7 +10048,75 @@ function LoadOBJMesh(gl, data) {
 }
 
 exports.LoadOBJMesh = LoadOBJMesh;
-},{"./mesh":"src/common/mesh.ts","webgl-obj-loader":"node_modules/webgl-obj-loader/dist/webgl-obj-loader.min.js"}],"src/common/camera.ts":[function(require,module,exports) {
+},{"./mesh":"src/common/mesh.ts","webgl-obj-loader":"node_modules/webgl-obj-loader/dist/webgl-obj-loader.min.js"}],"src/common/texture-utils.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function LoadImage(gl, image) {
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  return texture;
+}
+
+exports.LoadImage = LoadImage;
+
+function CheckerBoard(gl, imageSize, cellSize, color0, color1) {
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+  var data = Array(imageSize[0] * imageSize[1] * 4);
+
+  for (var j = 0; j < imageSize[1]; j++) {
+    for (var i = 0; i < imageSize[0]; i++) {
+      data[i + j * imageSize[0]] = (Math.floor(i / cellSize[0]) + Math.floor(j / cellSize[1])) % 2 == 0 ? color0 : color1;
+    }
+  }
+
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, imageSize[0], imageSize[1], 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(data.flat()));
+  gl.generateMipmap(gl.TEXTURE_2D);
+  return texture;
+}
+
+exports.CheckerBoard = CheckerBoard;
+
+function SingleColor(gl, color) {
+  if (color === void 0) {
+    color = [255, 255, 255, 255];
+  }
+
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(color));
+  gl.generateMipmap(gl.TEXTURE_2D);
+  return texture;
+}
+
+exports.SingleColor = SingleColor;
+
+function RenderTexture(gl, size, internalFormat, levels) {
+  if (levels === void 0) {
+    levels = 1;
+  }
+
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  if (levels == 0) levels = Math.ceil(1 + Math.log2(Math.max(size[0], size[1])));
+  gl.texStorage2D(gl.TEXTURE_2D, levels, internalFormat, size[0], size[1]);
+  return texture;
+}
+
+exports.RenderTexture = RenderTexture;
+},{}],"src/common/camera.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -10070,7 +10138,7 @@ function () {
     this.orthographicHeight = 10;
     this.aspectRatio = 1;
     this.near = 0.01;
-    this.far = 600;
+    this.far = 300000;
   }
 
   Object.defineProperty(Camera.prototype, "ViewMatrix", {
@@ -10126,9 +10194,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var gl_matrix_1 = require("gl-matrix");
-
-var ts_key_enum_1 = require("ts-key-enum"); // This is a controller to simulate a flying Camera
+var gl_matrix_1 = require("gl-matrix"); // This is a controller to simulate a flying Camera
 // The controls are:
 // Hold Left-Mouse-Button and Drag to rotate camera
 // Hold Left-Mouse-Button + WASD to move and QE to go up or down
@@ -10145,7 +10211,6 @@ function () {
     this.yawSensitivity = 0.001;
     this.pitchSensitivity = 0.001;
     this.movementSensitivity = 0.001;
-    this.fastMovementSensitivity = 0.01;
     this.camera = camera;
     camera.up = gl_matrix_1.vec3.fromValues(0, 1, 0);
     this.input = input;
@@ -10157,36 +10222,26 @@ function () {
   FlyCameraController.prototype.update = function (deltaTime) {
     if (this.input.isButtonJustDown(0)) {
       this.input.requestPointerLock();
-    }
-    /*else if(this.input.isButtonJustUp(0)){
+    } else if (this.input.isButtonJustUp(0)) {
       this.input.exitPointerLock();
-    }*/
+    }
 
-
-    if (this.input.isPointerLocked()) {
-      //Captures mouse movement and change camera direction
-
-      /*
-      const mouseDelta = this.input.MouseDelta;
+    if (this.input.isButtonDown(0)) {
+      var mouseDelta = this.input.MouseDelta;
       this.yaw += mouseDelta[0] * this.yawSensitivity;
       this.pitch += -mouseDelta[1] * this.pitchSensitivity;
-      this.pitch = Math.min(Math.PI/2, Math.max(-Math.PI/2, this.pitch));
-      this.camera.direction = vec3.fromValues(Math.cos(this.yaw)*Math.cos(this.pitch), Math.sin(this.pitch), Math.sin(this.yaw)*Math.cos(this.pitch))
-      */
+      this.pitch = Math.min(Math.PI / 2, Math.max(-Math.PI / 2, this.pitch));
+      this.camera.direction = gl_matrix_1.vec3.fromValues(Math.cos(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.sin(this.yaw) * Math.cos(this.pitch));
       var movement = gl_matrix_1.vec3.create();
-      if (this.input.isKeyJustDown("w")) movement[2] -= 50;
-      if (this.input.isKeyJustDown("s")) movement[2] += 50;
-      /*if(this.input.isKeyDown("d")) movement[0] += 0;
-      if(this.input.isKeyDown("a")) movement[0] -= 0;
-      if(this.input.isKeyDown("q")) movement[1] += 0;
-      if(this.input.isKeyDown("e")) movement[1] -= 0;*/
-      // vec3.normalize(movement, movement);
-
-      var movementSensitivity = this.input.isKeyDown(ts_key_enum_1.Key.Shift) ? this.fastMovementSensitivity : this.movementSensitivity;
-      var direction = gl_matrix_1.vec3.fromValues(0, 0, -1.0);
-      gl_matrix_1.vec3.add(this.camera.position, this.camera.position, movement);
-      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.right, movement[0] * movementSensitivity * deltaTime);
-      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.up, movement[1] * movementSensitivity * deltaTime);
+      if (this.input.isKeyDown("w")) movement[2] += deltaTime * this.movementSensitivity;
+      if (this.input.isKeyDown("s")) movement[2] -= deltaTime * this.movementSensitivity;
+      if (this.input.isKeyDown("d")) movement[0] += deltaTime * this.movementSensitivity;
+      if (this.input.isKeyDown("a")) movement[0] -= deltaTime * this.movementSensitivity;
+      if (this.input.isKeyDown("q")) movement[1] += deltaTime * this.movementSensitivity;
+      if (this.input.isKeyDown("e")) movement[1] -= deltaTime * this.movementSensitivity;
+      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.direction, movement[2]);
+      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.right, movement[0]);
+      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.up, movement[1]);
     }
 
     if (this.input.isKeyJustDown("t")) {
@@ -10206,7 +10261,7 @@ function () {
 }();
 
 exports.default = FlyCameraController;
-},{"gl-matrix":"node_modules/gl-matrix/esm/index.js","ts-key-enum":"node_modules/ts-key-enum/dist/js/Key.enum.js"}],"src/scenes/CrossyRoad.tsx":[function(require,module,exports) {
+},{"gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"src/scenes/CrossyRoad.tsx":[function(require,module,exports) {
 "use strict";
 
 var __extends = this && this.__extends || function () {
@@ -10261,6 +10316,8 @@ var shader_program_1 = __importDefault(require("../common/shader-program"));
 
 var MeshUtils = __importStar(require("../common/mesh-utils"));
 
+var TextureUtils = __importStar(require("../common/texture-utils"));
+
 var camera_1 = __importDefault(require("../common/camera"));
 
 var fly_camera_controller_1 = __importDefault(require("../common/camera-controllers/fly-camera-controller"));
@@ -10291,9 +10348,18 @@ function (_super) {
     }, _a["frag"] = {
       url: 'shaders/crossy.frag',
       type: 'text'
-    }, _a["suzanne"] = {
-      url: 'models/Ship/Ship.obj',
+    }, _a["Pig"] = {
+      url: 'models/Pig/pig.obj',
       type: 'text'
+    }, _a["grass"] = {
+      url: 'images/Grass/Road.png',
+      type: 'image'
+    }, _a['pigtex'] = {
+      url: '/models/Pig/pig.png',
+      type: 'image'
+    }, _a["road"] = {
+      url: 'images/Grass/road.jfif',
+      type: 'image'
     }, _a));
   };
 
@@ -10302,43 +10368,26 @@ function (_super) {
     this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
     this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
     this.program.link();
-    this.meshes['suzanne'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["suzanne"]);
-    this.meshes['ground'] = MeshUtils.Plane(this.gl, {
+    this.meshes['Pig'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Pig"]);
+    this.meshes['grass'] = MeshUtils.Plane(this.gl, {
       min: [0, 0],
-      max: [200, 200]
-    }); //this.textures['ground']=this.gl.createTexture();
-    //this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['ground']);
-    // this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
-    // const C0 = [26, 23, 15], C1 = [245, 232, 163];
-    // const W = 1024, H = 1024, cW = 256, cH = 256;
-    // let data = Array(W*H*3);
-    // for(let j = 0; j < H; j++){
-    //     for(let i = 0; i < W; i++){
-    //         data[i + j*W] = (Math.floor(i/cW) + Math.floor(j/cH))%2 == 0 ? C0 : C1;
-    //     }
-    // }
-    // this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 1);
-    // this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGB, W, H, 0, this.gl.RGB, this.gl.UNSIGNED_BYTE, new Uint8Array(data.flat()));
-    // this.gl.generateMipmap(this.gl.TEXTURE_2D);
-    // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
-    // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
-    // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-    // this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
-
+      max: [1, 1]
+    });
     this.camera = new camera_1.default();
     this.camera.type = 'perspective';
-    this.camera.position = gl_matrix_1.vec3.fromValues(0, 300, 300);
-    this.camera.direction = gl_matrix_1.vec3.fromValues(0, -2, -1);
+    this.camera.position = gl_matrix_1.vec3.fromValues(100, 100, 0);
+    this.camera.direction = gl_matrix_1.vec3.fromValues(-0.5, -2, -1);
     this.camera.aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
-    this.controller = new fly_camera_controller_1.default(this.camera, this.game.input); //this.controller.movementSensitivity = 0.05;
-
+    this.controller = new fly_camera_controller_1.default(this.camera, this.game.input);
+    this.controller.movementSensitivity = 0.5;
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
-    this.gl.clearColor(0, 0, 0, 1); // Here we will initialize the scene objects before entering the draw loop 
+    this.textures['grass'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['grass']);
+    this.textures['pigtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['pigtex']);
+    this.gl.clearColor(1.0, 1.0, 1.0, 1);
   };
 
   CrossyRoad.prototype.draw = function (deltaTime) {
@@ -10347,24 +10396,22 @@ function (_super) {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.program.use();
     var VP = this.camera.ViewProjectionMatrix;
-    var GroundMat = gl_matrix_1.mat4.create();
-    gl_matrix_1.mat4.scale(GroundMat, GroundMat, [300, 1, 3000]);
-    gl_matrix_1.mat4.multiply(GroundMat, VP, GroundMat);
-    this.program.setUniformMatrix4fv("MVP", false, GroundMat); // this.gl.activeTexture(this.gl.TEXTURE0);
-    // this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['ground']);
-    // this.program.setUniform1i('texture_sampler',0);
-
+    var GroundMat = gl_matrix_1.mat4.clone(VP);
+    gl_matrix_1.mat4.scale(GroundMat, GroundMat, [100, 1, 100]);
+    this.program.setUniformMatrix4fv("MVP", false, GroundMat);
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['grass']);
+    this.program.setUniform1i('texture_sampler', 0);
     this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
-    this.meshes['ground'].draw(this.gl.TRIANGLES);
+    this.meshes['grass'].draw(this.gl.TRIANGLES);
     this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
-    var MatSuzanne = gl_matrix_1.mat4.clone(VP);
-    gl_matrix_1.mat4.translate(MatSuzanne, MatSuzanne, [0, 0, 300]); //let translate = vec3.fromValues(0,0,-1);
-    //vec3.add(this.camera.position,this.camera.position,translate);
-
-    gl_matrix_1.mat4.scale(MatSuzanne, MatSuzanne, [10, 10, 10]);
-    this.program.setUniformMatrix4fv("MVP", false, MatSuzanne);
+    var MatPig = gl_matrix_1.mat4.clone(VP);
+    gl_matrix_1.mat4.rotateY(MatPig, MatPig, 180 * Math.PI / 180);
+    gl_matrix_1.mat4.translate(MatPig, MatPig, [0, 0, -10]);
+    this.program.setUniformMatrix4fv("MVP", false, MatPig);
     this.program.setUniform4f("tint", [0.0, 0.0, 0.0, 1.0]);
-    this.meshes['suzanne'].draw(this.gl.TRIANGLES); // this.program.setUniform3f("cam_position", this.camera.position);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['pigtex']);
+    this.meshes['Pig'].draw(this.gl.TRIANGLES);
   };
 
   CrossyRoad.prototype.end = function () {
@@ -10389,7 +10436,7 @@ function (_super) {
 }(game_1.Scene);
 
 exports.default = CrossyRoad;
-},{"../common/game":"src/common/game.ts","../common/shader-program":"src/common/shader-program.ts","../common/mesh-utils":"src/common/mesh-utils.ts","../common/camera":"src/common/camera.ts","../common/camera-controllers/fly-camera-controller":"src/common/camera-controllers/fly-camera-controller.ts","gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"src/app.ts":[function(require,module,exports) {
+},{"../common/game":"src/common/game.ts","../common/shader-program":"src/common/shader-program.ts","../common/mesh-utils":"src/common/mesh-utils.ts","../common/texture-utils":"src/common/texture-utils.ts","../common/camera":"src/common/camera.ts","../common/camera-controllers/fly-camera-controller":"src/common/camera-controllers/fly-camera-controller.ts","gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"src/app.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -10460,7 +10507,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50866" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49915" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

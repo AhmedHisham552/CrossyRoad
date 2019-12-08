@@ -8,5 +8,5 @@ out vec4 color;
 uniform vec4 tint;
 uniform sampler2D texture_sampler;
 void main(){
-    color = /*texture_sampler(texture_sampler,v_texcoord)*/vertexColor*tint; // Send our interpolated color
+    color = texture(texture_sampler,v_texcoord)*vertexColor; // Send our interpolated color
 }

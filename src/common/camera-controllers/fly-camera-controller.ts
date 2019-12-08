@@ -3,6 +3,7 @@ import Input from '../input';
 import { vec3, vec2 } from 'gl-matrix';
 import { Key } from 'ts-key-enum';
 
+
 // This is a controller to simulate a flying Camera
 // The controls are:
 // Hold Left-Mouse-Button and Drag to rotate camera
@@ -20,7 +21,6 @@ export default class FlyCameraController {
     yawSensitivity: number = 0.001;
     pitchSensitivity: number = 0.001;
     movementSensitivity: number = 0.001;
-    fastMovementSensitivity: number = 0.01;
 
     constructor(camera: Camera, input: Input){
         this.camera = camera;
@@ -35,33 +35,28 @@ export default class FlyCameraController {
     public update(deltaTime: number) {
         if(this.input.isButtonJustDown(0)){
             this.input.requestPointerLock();
-        } /*else if(this.input.isButtonJustUp(0)){
+        } else if(this.input.isButtonJustUp(0)){
             this.input.exitPointerLock();
-        }*/
+        }
 
-        if(this.input.isPointerLocked()){
-            //Captures mouse movement and change camera direction
-            /*
+        if(this.input.isButtonDown(0)){
             const mouseDelta = this.input.MouseDelta;
             this.yaw += mouseDelta[0] * this.yawSensitivity;
             this.pitch += -mouseDelta[1] * this.pitchSensitivity;
             this.pitch = Math.min(Math.PI/2, Math.max(-Math.PI/2, this.pitch));
             this.camera.direction = vec3.fromValues(Math.cos(this.yaw)*Math.cos(this.pitch), Math.sin(this.pitch), Math.sin(this.yaw)*Math.cos(this.pitch))
-            */
-            const movement = vec3.create();
-            if(this.input.isKeyJustDown("w")) movement[2] -= 50;
-            if(this.input.isKeyJustDown("s")) movement[2] += 50;
-            /*if(this.input.isKeyDown("d")) movement[0] += 0;
-            if(this.input.isKeyDown("a")) movement[0] -= 0;
-            if(this.input.isKeyDown("q")) movement[1] += 0;
-            if(this.input.isKeyDown("e")) movement[1] -= 0;*/
-           // vec3.normalize(movement, movement);
             
-            let movementSensitivity = this.input.isKeyDown(Key.Shift)?this.fastMovementSensitivity:this.movementSensitivity;
-            let direction=vec3.fromValues(0,0,-1.0);
-            vec3.add(this.camera.position, this.camera.position,movement);
-            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.right, movement[0]*movementSensitivity*deltaTime);
-            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.up, movement[1]*movementSensitivity*deltaTime);
+            const movement = vec3.create();
+            if(this.input.isKeyDown("w")) movement[2] += deltaTime * this.movementSensitivity;
+            if(this.input.isKeyDown("s")) movement[2] -= deltaTime * this.movementSensitivity;
+            if(this.input.isKeyDown("d")) movement[0] += deltaTime * this.movementSensitivity;
+            if(this.input.isKeyDown("a")) movement[0] -= deltaTime * this.movementSensitivity;
+            if(this.input.isKeyDown("q")) movement[1] += deltaTime * this.movementSensitivity;
+            if(this.input.isKeyDown("e")) movement[1] -= deltaTime * this.movementSensitivity;
+
+            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.direction, movement[2]);
+            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.right, movement[0]);
+            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.up, movement[1]);
         }
 
         if(this.input.isKeyJustDown("t")){

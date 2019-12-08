@@ -13,7 +13,7 @@ export default class Camera {
     orthographicHeight: number = 10;
     aspectRatio: number = 1;
     near: number = 0.01;
-    far: number = 600;
+    far: number = 300000;
 
     public get ViewMatrix(): mat4 { return mat4.lookAt(mat4.create(), this.position, vec3.add(vec3.create(), this.position, this.direction), this.up); }
     public get ProjectionMatrix(): mat4 {
