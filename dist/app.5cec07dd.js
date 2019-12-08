@@ -10337,7 +10337,7 @@ function (_super) {
     _this.current_texture = 0;
     _this.planeWidth = 402.0; //width of double planes
 
-    _this.playerPosZ = 405.0; //position of player
+    _this.playerPosZ = 1000.0; //position of player
 
     return _this;
   }
@@ -10415,7 +10415,7 @@ function (_super) {
     for (var i = -2; i <= 2; i++) //plane width is 402.0
     {
       var GroundMat = gl_matrix_1.mat4.clone(VP);
-      gl_matrix_1.mat4.translate(GroundMat, GroundMat, [0, 0, -(i * this.planeWidth + ScaledPlayerPosZ)]);
+      gl_matrix_1.mat4.translate(GroundMat, GroundMat, [0, 0, i * this.planeWidth + ScaledPlayerPosZ]);
       gl_matrix_1.mat4.scale(GroundMat, GroundMat, [1000, 1, 100]);
       this.program.setUniformMatrix4fv("MVP", false, GroundMat);
       this.gl.activeTexture(this.gl.TEXTURE0);
@@ -10425,7 +10425,7 @@ function (_super) {
       this.meshes['grass'].draw(this.gl.TRIANGLES);
       var GroundMat2 = gl_matrix_1.mat4.clone(VP);
       gl_matrix_1.mat4.rotateY(GroundMat2, GroundMat2, 180.0 * Math.PI / 180.0);
-      gl_matrix_1.mat4.translate(GroundMat2, GroundMat2, [0, 0, i * this.planeWidth + 202.0 + ScaledPlayerPosZ]);
+      gl_matrix_1.mat4.translate(GroundMat2, GroundMat2, [0, 0, -(i * this.planeWidth - 202.0 + ScaledPlayerPosZ)]);
       gl_matrix_1.mat4.scale(GroundMat2, GroundMat2, [1000, 1, 100]);
       this.program.setUniformMatrix4fv("MVP", false, GroundMat2);
       this.gl.activeTexture(this.gl.TEXTURE0);

@@ -22,7 +22,7 @@ export default class CrossyRoad extends Scene{
     sampler: WebGLSampler;
     Player:Player;
     planeWidth = 402.0;             //width of double planes
-    playerPosZ = 405.0;             //position of player
+    playerPosZ = 1000.0;             //position of player
 
     public load(): void {
         // Here we will tell the loader which files to load from the webserver
@@ -88,7 +88,7 @@ export default class CrossyRoad extends Scene{
         for(let i=-2;i<=2;i++)            //plane width is 402.0
         {
             let GroundMat=mat4.clone(VP);           
-            mat4.translate(GroundMat, GroundMat, [0,0, -(i*this.planeWidth + ScaledPlayerPosZ)]); 
+            mat4.translate(GroundMat, GroundMat, [0,0, (i*this.planeWidth + ScaledPlayerPosZ)]);  
             mat4.scale(GroundMat,GroundMat,[1000,1,100]);
             this.program.setUniformMatrix4fv("MVP",false,GroundMat);
             this.gl.activeTexture(this.gl.TEXTURE0);
@@ -99,7 +99,7 @@ export default class CrossyRoad extends Scene{
     
             let GroundMat2=mat4.clone(VP);
             mat4.rotateY(GroundMat2, GroundMat2, 180.0 * Math.PI / 180.0);
-            mat4.translate(GroundMat2, GroundMat2, [0,0, ((i*this.planeWidth + 202.0) + ScaledPlayerPosZ)]);
+            mat4.translate(GroundMat2, GroundMat2, [0,0, -((i*this.planeWidth - 202.0) + ScaledPlayerPosZ)]);
             mat4.scale(GroundMat2,GroundMat2,[1000,1,100]);
             this.program.setUniformMatrix4fv("MVP",false,GroundMat2);
             this.gl.activeTexture(this.gl.TEXTURE0);
