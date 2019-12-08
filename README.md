@@ -1,7 +1,3 @@
-# WebGL Lab 4
-
-You can try the lab [here](https://yahiaetman.github.io/CMP205-WebGL-Graphics-Lab-4/)
-
 ## Steps to run
 
 1. Install [Node.js](https://nodejs.org/en/) and [Visual Studio Code](https://code.visualstudio.com/).
@@ -15,7 +11,7 @@ You can try the lab [here](https://yahiaetman.github.io/CMP205-WebGL-Graphics-La
 
 **Debugging:** You will need the extension [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome). After running till Step 5 from [Steps to run](#steps-to-run), press F5 or click the Debug icon on the left bar then choose *"Launch Chrome against"* localhost" and click the *"Start Debugging"* button (play button). Now you can use breakpoints, watch, etc. The required configuration for the debugger is written in `.vscode/launch.json`.
 
-## Lab Structure
+## Files Structure
 
 **index.html** is the webpage in which we run our app. It is the entry point of our app and it links to the main script file "app.ts"
 
@@ -31,17 +27,6 @@ You can try the lab [here](https://yahiaetman.github.io/CMP205-WebGL-Graphics-La
 
 **camera.ts** contains a camera class to manage the variables for a camera. It can be used with one of the **camera-controllers** to create user-controlled camera.
 
-**scenes folder** contains the scenes that demonstrate some concepts we need to understand about WebGL2.
+**scenes folder** contains the scenes of the game.
 
-**static folder** contains the assets file for our project. It currently contains the shader files in the **shaders folder**.
-
-## Extra Resources
-
-* [Mozilla WebGL Reference and Tutorial](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API) which is for WebGL1 but many of the presented material is still valid for WebGL2.
-* [WebGL2 Fundamentals](https://webgl2fundamentals.org/)
-* [Khronos WebGL2 Reference Guide](https://www.khronos.org/files/webgl20-reference-guide.pdf)
-* [Mozilla WebGL2 API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext)
-* [Mouse Picking with Ray Casting](http://antongerdelan.net/opengl/raycasting.html) by Anton Gerdelan.
-* [WebGL2 Samples](https://github.com/WebGLSamples/WebGL2Samples)
-* [GLSL Reference](https://www.khronos.org/opengles/sdk/docs/manglsl/docbook4/)
-* [Marmoset Guide for Metalness to Specular Conversion](https://marmoset.co/posts/pbr-texture-conversion/#metaltospec)
+**static folder** contains the assets and shader file for our game.
