@@ -14,6 +14,7 @@ import { Key } from 'ts-key-enum';
 export default class FlyCameraController {
     camera: Camera;
     input: Input;
+    PlayerPos: vec3;
 
     yaw: number = 0;
     pitch: number = 0;
@@ -22,7 +23,7 @@ export default class FlyCameraController {
     pitchSensitivity: number = 0.001;
     movementSensitivity: number = 0.001;
 
-    constructor(camera: Camera, input: Input){
+    constructor(camera: Camera, input: Input, PlayerPos: vec3){
         this.camera = camera;
         camera.up = vec3.fromValues(0, 1, 0);
         this.input = input;
@@ -30,6 +31,8 @@ export default class FlyCameraController {
         const direction = camera.direction;
         this.yaw = Math.atan2(direction[2], direction[0]);
         this.pitch = Math.atan2(direction[1], vec2.len([direction[0], direction[1]]));
+
+        this.PlayerPos = PlayerPos;
     }
 
     public update(deltaTime: number) {
@@ -40,12 +43,6 @@ export default class FlyCameraController {
         }
 
         if(this.input.isButtonDown(0)){
-            const mouseDelta = this.input.MouseDelta;
-            this.yaw += mouseDelta[0] * this.yawSensitivity;
-            this.pitch += -mouseDelta[1] * this.pitchSensitivity;
-            this.pitch = Math.min(Math.PI/2, Math.max(-Math.PI/2, this.pitch));
-            this.camera.direction = vec3.fromValues(Math.cos(this.yaw)*Math.cos(this.pitch), Math.sin(this.pitch), Math.sin(this.yaw)*Math.cos(this.pitch))
-            
             const movement = vec3.create();
             if(this.input.isKeyDown("w")) movement[2] += deltaTime * this.movementSensitivity;
             if(this.input.isKeyDown("s")) movement[2] -= deltaTime * this.movementSensitivity;
@@ -54,9 +51,11 @@ export default class FlyCameraController {
             if(this.input.isKeyDown("q")) movement[1] += deltaTime * this.movementSensitivity;
             if(this.input.isKeyDown("e")) movement[1] -= deltaTime * this.movementSensitivity;
 
-            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.direction, movement[2]);
-            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.right, movement[0]);
-            vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.up, movement[1]);
+            vec3.add(this.PlayerPos, this.PlayerPos, movement);
+            this.camera.position[2] = this.PlayerPos[2]
+            this.camera.position[0] = this.PlayerPos[0];
+            this.camera.direction=vec3.fromValues(0,-0.8323,0.554197);
+
         }
 
         if(this.input.isKeyJustDown("t")){

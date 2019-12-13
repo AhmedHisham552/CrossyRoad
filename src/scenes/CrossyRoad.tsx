@@ -9,7 +9,7 @@ import { vec3, mat4 } from 'gl-matrix';
 import { Vector, Selector, Color, NumberInput } from '../common/dom-utils';
 import { createElement, StatelessProps, StatelessComponent } from 'tsx-create-element';
 import { translate } from 'gl-matrix/src/gl-matrix/mat2d';
-import { Player } from '../Classes/Player';
+//import { Player } from '../Classes/Player';
 import { toRadian } from 'gl-matrix/src/gl-matrix/common';
 
 export default class CrossyRoad extends Scene{
@@ -20,9 +20,10 @@ export default class CrossyRoad extends Scene{
     textures: {[name: string]: WebGLTexture} = {};
     current_texture: number = 0;
     sampler: WebGLSampler;
-    Player:Player;
+    //Player:Player;
     planeWidth = 402.0;             //width of double planes
-    playerPosZ = 1000.0;             //position of player
+    PlayerPos: vec3;
+    maxPlayerPos = this.planeWidth*3.0;
 
     public load(): void {
         // Here we will tell the loader which files to load from the webserver
@@ -40,6 +41,10 @@ export default class CrossyRoad extends Scene{
     }
 
     public start(): void {
+
+        this.PlayerPos = vec3.create();
+        this.PlayerPos = vec3.fromValues(0,0,0);
+
         this.program = new ShaderProgram(this.gl);
         this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
         this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
@@ -51,10 +56,11 @@ export default class CrossyRoad extends Scene{
 
         this.camera=new Camera();
         this.camera.type='perspective';
-        this.camera.position=vec3.fromValues(0,150,this.playerPosZ+40);
-        this.camera.direction=vec3.fromValues(0,-0.8323,-0.554197);
+        this.camera.position=vec3.fromValues(this.PlayerPos[0],250,this.PlayerPos[2]);
+        this.camera.direction=vec3.fromValues(0,-0.8323,0.554197);
         this.camera.aspectRatio=this.gl.drawingBufferWidth/this.gl.drawingBufferHeight;
-        this.controller = new FlyCameraController(this.camera, this.game.input);
+
+        this.controller = new FlyCameraController(this.camera, this.game.input, this.PlayerPos);
         this.controller.movementSensitivity = 0.5;
 
         this.gl.enable(this.gl.CULL_FACE);
@@ -79,16 +85,13 @@ export default class CrossyRoad extends Scene{
 
         let VP = this.camera.ViewProjectionMatrix;
 
+        if(this.PlayerPos[2] >= this.maxPlayerPos)
+            this.PlayerPos[2] = 0.0;
 
-
-        let ScaledPlayerPosZ = this.playerPosZ/this.planeWidth;
-        ScaledPlayerPosZ = Math.floor(ScaledPlayerPosZ);
-        ScaledPlayerPosZ *= this.planeWidth;     //scaled pos = lowest multiple of width (0, 402.0, 804.0, ...)
-
-        for(let i=-2;i<=2;i++)            //plane width is 402.0
+        for(let i=0;i<=6;i++)            //plane width is 402.0
         {
             let GroundMat=mat4.clone(VP);           
-            mat4.translate(GroundMat, GroundMat, [0,0, (i*this.planeWidth + ScaledPlayerPosZ)]);  
+            mat4.translate(GroundMat, GroundMat, [0,0, (i*this.planeWidth)]);  
             mat4.scale(GroundMat,GroundMat,[1000,1,100]);
             this.program.setUniformMatrix4fv("MVP",false,GroundMat);
             this.gl.activeTexture(this.gl.TEXTURE0);
@@ -99,7 +102,7 @@ export default class CrossyRoad extends Scene{
     
             let GroundMat2=mat4.clone(VP);
             mat4.rotateY(GroundMat2, GroundMat2, 180.0 * Math.PI / 180.0);
-            mat4.translate(GroundMat2, GroundMat2, [0,0, -((i*this.planeWidth - 202.0) + ScaledPlayerPosZ)]);
+            mat4.translate(GroundMat2, GroundMat2, [0,0, -(i*this.planeWidth - 202.0)]);
             mat4.scale(GroundMat2,GroundMat2,[1000,1,100]);
             this.program.setUniformMatrix4fv("MVP",false,GroundMat2);
             this.gl.activeTexture(this.gl.TEXTURE0);
@@ -113,8 +116,8 @@ export default class CrossyRoad extends Scene{
 
         this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
         let MatPig = mat4.clone(VP);
-        mat4.rotateY(MatPig,MatPig,180*Math.PI/180);
-        mat4.translate(MatPig,MatPig,[0,0,-this.playerPosZ]);
+        //mat4.rotateY(MatPig,MatPig,180*Math.PI/180);
+        mat4.translate(MatPig,MatPig,this.PlayerPos);
         this.program.setUniformMatrix4fv("MVP", false, MatPig);
         this.program.setUniform4f("tint", [0.0, 0.0, 0.0, 1.0]);
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['pigtex']);

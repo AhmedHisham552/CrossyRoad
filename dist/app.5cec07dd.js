@@ -10205,7 +10205,7 @@ var gl_matrix_1 = require("gl-matrix"); // This is a controller to simulate a fl
 var FlyCameraController =
 /** @class */
 function () {
-  function FlyCameraController(camera, input) {
+  function FlyCameraController(camera, input, PlayerPos) {
     this.yaw = 0;
     this.pitch = 0;
     this.yawSensitivity = 0.001;
@@ -10217,6 +10217,7 @@ function () {
     var direction = camera.direction;
     this.yaw = Math.atan2(direction[2], direction[0]);
     this.pitch = Math.atan2(direction[1], gl_matrix_1.vec2.len([direction[0], direction[1]]));
+    this.PlayerPos = PlayerPos;
   }
 
   FlyCameraController.prototype.update = function (deltaTime) {
@@ -10227,11 +10228,6 @@ function () {
     }
 
     if (this.input.isButtonDown(0)) {
-      var mouseDelta = this.input.MouseDelta;
-      this.yaw += mouseDelta[0] * this.yawSensitivity;
-      this.pitch += -mouseDelta[1] * this.pitchSensitivity;
-      this.pitch = Math.min(Math.PI / 2, Math.max(-Math.PI / 2, this.pitch));
-      this.camera.direction = gl_matrix_1.vec3.fromValues(Math.cos(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.sin(this.yaw) * Math.cos(this.pitch));
       var movement = gl_matrix_1.vec3.create();
       if (this.input.isKeyDown("w")) movement[2] += deltaTime * this.movementSensitivity;
       if (this.input.isKeyDown("s")) movement[2] -= deltaTime * this.movementSensitivity;
@@ -10239,9 +10235,10 @@ function () {
       if (this.input.isKeyDown("a")) movement[0] -= deltaTime * this.movementSensitivity;
       if (this.input.isKeyDown("q")) movement[1] += deltaTime * this.movementSensitivity;
       if (this.input.isKeyDown("e")) movement[1] -= deltaTime * this.movementSensitivity;
-      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.direction, movement[2]);
-      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.right, movement[0]);
-      gl_matrix_1.vec3.scaleAndAdd(this.camera.position, this.camera.position, this.camera.up, movement[1]);
+      gl_matrix_1.vec3.add(this.PlayerPos, this.PlayerPos, movement);
+      this.camera.position[2] = this.PlayerPos[2];
+      this.camera.position[0] = this.PlayerPos[0];
+      this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.8323, 0.554197);
     }
 
     if (this.input.isKeyJustDown("t")) {
@@ -10334,11 +10331,11 @@ function (_super) {
 
     _this.meshes = {};
     _this.textures = {};
-    _this.current_texture = 0;
+    _this.current_texture = 0; //Player:Player;
+
     _this.planeWidth = 402.0; //width of double planes
 
-    _this.playerPosZ = 1000.0; //position of player
-
+    _this.maxPlayerPos = _this.planeWidth * 3.0;
     return _this;
   }
 
@@ -10374,6 +10371,8 @@ function (_super) {
   };
 
   CrossyRoad.prototype.start = function () {
+    this.PlayerPos = gl_matrix_1.vec3.create();
+    this.PlayerPos = gl_matrix_1.vec3.fromValues(0, 0, 0);
     this.program = new shader_program_1.default(this.gl);
     this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
     this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
@@ -10386,10 +10385,10 @@ function (_super) {
     });
     this.camera = new camera_1.default();
     this.camera.type = 'perspective';
-    this.camera.position = gl_matrix_1.vec3.fromValues(0, 150, this.playerPosZ + 40);
-    this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.8323, -0.554197);
+    this.camera.position = gl_matrix_1.vec3.fromValues(this.PlayerPos[0], 250, this.PlayerPos[2]);
+    this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.8323, 0.554197);
     this.camera.aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
-    this.controller = new fly_camera_controller_1.default(this.camera, this.game.input);
+    this.controller = new fly_camera_controller_1.default(this.camera, this.game.input, this.PlayerPos);
     this.controller.movementSensitivity = 0.5;
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
@@ -10408,14 +10407,12 @@ function (_super) {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.program.use();
     var VP = this.camera.ViewProjectionMatrix;
-    var ScaledPlayerPosZ = this.playerPosZ / this.planeWidth;
-    ScaledPlayerPosZ = Math.floor(ScaledPlayerPosZ);
-    ScaledPlayerPosZ *= this.planeWidth; //scaled pos = lowest multiple of width (0, 402.0, 804.0, ...)
+    if (this.PlayerPos[2] >= this.maxPlayerPos) this.PlayerPos[2] = 0.0;
 
-    for (var i = -2; i <= 2; i++) //plane width is 402.0
+    for (var i = 0; i <= 6; i++) //plane width is 402.0
     {
       var GroundMat = gl_matrix_1.mat4.clone(VP);
-      gl_matrix_1.mat4.translate(GroundMat, GroundMat, [0, 0, i * this.planeWidth + ScaledPlayerPosZ]);
+      gl_matrix_1.mat4.translate(GroundMat, GroundMat, [0, 0, i * this.planeWidth]);
       gl_matrix_1.mat4.scale(GroundMat, GroundMat, [1000, 1, 100]);
       this.program.setUniformMatrix4fv("MVP", false, GroundMat);
       this.gl.activeTexture(this.gl.TEXTURE0);
@@ -10425,7 +10422,7 @@ function (_super) {
       this.meshes['grass'].draw(this.gl.TRIANGLES);
       var GroundMat2 = gl_matrix_1.mat4.clone(VP);
       gl_matrix_1.mat4.rotateY(GroundMat2, GroundMat2, 180.0 * Math.PI / 180.0);
-      gl_matrix_1.mat4.translate(GroundMat2, GroundMat2, [0, 0, -(i * this.planeWidth - 202.0 + ScaledPlayerPosZ)]);
+      gl_matrix_1.mat4.translate(GroundMat2, GroundMat2, [0, 0, -(i * this.planeWidth - 202.0)]);
       gl_matrix_1.mat4.scale(GroundMat2, GroundMat2, [1000, 1, 100]);
       this.program.setUniformMatrix4fv("MVP", false, GroundMat2);
       this.gl.activeTexture(this.gl.TEXTURE0);
@@ -10436,9 +10433,9 @@ function (_super) {
     }
 
     this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
-    var MatPig = gl_matrix_1.mat4.clone(VP);
-    gl_matrix_1.mat4.rotateY(MatPig, MatPig, 180 * Math.PI / 180);
-    gl_matrix_1.mat4.translate(MatPig, MatPig, [0, 0, -this.playerPosZ]);
+    var MatPig = gl_matrix_1.mat4.clone(VP); //mat4.rotateY(MatPig,MatPig,180*Math.PI/180);
+
+    gl_matrix_1.mat4.translate(MatPig, MatPig, this.PlayerPos);
     this.program.setUniformMatrix4fv("MVP", false, MatPig);
     this.program.setUniform4f("tint", [0.0, 0.0, 0.0, 1.0]);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['pigtex']);
@@ -10538,7 +10535,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50140" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64317" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
