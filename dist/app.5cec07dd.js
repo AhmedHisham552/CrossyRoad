@@ -10368,6 +10368,9 @@ function (_super) {
     }, _a["road"] = {
       url: 'images/Grass/road.jpg',
       type: 'image'
+    }, _a["inputLevel"] = {
+      url: 'Levels/Level1.txt',
+      type: 'text'
     }, _a));
   };
 
@@ -10405,7 +10408,8 @@ function (_super) {
     this.textures['pigtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['pigtex']);
     this.textures['dogtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['dogtex']);
     this.gl.clearColor(1.0, 1.0, 1.0, 1);
-    this.levelMap = ["TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT", "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT", "RRCRRRRRRRRRRRRRRCRRRRRRRRRRRRRR", "RRRRRRFRRRRRRRFRRRRRRRRRRRRRRRRR", "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT", "RRRRRRRRRFRRRRRRRRRFRRRRRRRRFRRR", "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT"];
+    var levelString = this.game.loader.resources['inputLevel'];
+    this.levelMap = levelString.split("\n");
   };
 
   CrossyRoad.prototype.draw = function (deltaTime) {
@@ -10547,7 +10551,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51157" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53540" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

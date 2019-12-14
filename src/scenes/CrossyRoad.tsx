@@ -36,7 +36,8 @@ export default class CrossyRoad extends Scene{
             ["grass"]:{url:'images/Grass/Grass.jfif',type:'image'},
             ['pigtex']:{url:'/models/Pig/pig.png',type:'image'},
             ["dogtex"]:{url:'models/Dog/Dog_diffuse.jpg', type: 'image'},
-            ["road"]:{url:'images/Grass/road.jpg',type:'image'}
+            ["road"]:{url:'images/Grass/road.jpg',type:'image'},
+            ["inputLevel"]:{url:'Levels/Level1.txt',type:'text'}
 
         });
     }
@@ -76,16 +77,9 @@ export default class CrossyRoad extends Scene{
         this.textures['pigtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['pigtex']);
         this.textures['dogtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['dogtex']);
         this.gl.clearColor(1.0,1.0,1.0,1);
-
-        this.levelMap = ["TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT",
-                        "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT",
-                        "RRCRRRRRRRRRRRRRRCRRRRRRRRRRRRRR",
-                        "RRRRRRFRRRRRRRFRRRRRRRRRRRRRRRRR",
-                        "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT",
-                        "RRRRRRRRRFRRRRRRRRRFRRRRRRRRFRRR",
-                        "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT"
-                        ]
-
+        
+        let levelString=this.game.loader.resources['inputLevel'];
+        this.levelMap = levelString.split("\n");
     } 
 
 
