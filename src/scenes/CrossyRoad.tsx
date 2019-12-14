@@ -24,7 +24,8 @@ export default class CrossyRoad extends Scene{
     planeWidth = 402.0;             //width of double planes
     PlayerPos: vec3;
     maxPlayerPos = this.planeWidth*3.0;
-
+    levelMap: string[]
+    blockSize = 25;
     public load(): void {
         // Here we will tell the loader which files to load from the webserver
         this.game.loader.load({
@@ -32,10 +33,10 @@ export default class CrossyRoad extends Scene{
             ["frag"]:{url:'shaders/crossy.frag', type:'text'},
             ["Pig"]:{url:'models/Pig/pig.obj',type:'text'},
             ["Dog"]:{url:'models/Dog/Dog.obj', type: 'text'},
-            ["grass"]:{url:'images/Grass/Road.png',type:'image'},
+            ["grass"]:{url:'images/Grass/Grass.jfif',type:'image'},
             ['pigtex']:{url:'/models/Pig/pig.png',type:'image'},
             ["dogtex"]:{url:'models/Dog/Dog_diffuse.jpg', type: 'image'},
-            ["road"]:{url:'images/Grass/road.jfif',type:'image'}
+            ["road"]:{url:'images/Grass/road.jpg',type:'image'}
 
         });
     }
@@ -53,6 +54,7 @@ export default class CrossyRoad extends Scene{
         this.meshes['Pig']=MeshUtils.LoadOBJMesh(this.gl,this.game.loader.resources["Pig"]);
         this.meshes['Dog']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Dog"]);
         this.meshes['grass']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
+        this.meshes['road']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
 
         this.camera=new Camera();
         this.camera.type='perspective';
@@ -70,9 +72,19 @@ export default class CrossyRoad extends Scene{
         this.gl.depthFunc(this.gl.LEQUAL);
 
         this.textures['grass']= TextureUtils.LoadImage(this.gl,this.game.loader.resources['grass']);
+        this.textures['road'] = TextureUtils.LoadImage(this.gl,this.game.loader.resources['road'])
         this.textures['pigtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['pigtex']);
         this.textures['dogtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['dogtex']);
         this.gl.clearColor(1.0,1.0,1.0,1);
+
+        this.levelMap = ["TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT",
+                        "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT",
+                        "RRCRRRRRRRRRRRRRRCRRRRRRRRRRRRRR",
+                        "RRRRRRFRRRRRRRFRRRRRRRRRRRRRRRRR",
+                        "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT",
+                        "RRRRRRRRRFRRRRRRRRRFRRRRRRRRFRRR",
+                        "TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT"
+                        ]
 
     } 
 
@@ -85,39 +97,42 @@ export default class CrossyRoad extends Scene{
 
         let VP = this.camera.ViewProjectionMatrix;
 
-        if(this.PlayerPos[2] >= this.maxPlayerPos)
-            this.PlayerPos[2] = 0.0;
-
-        for(let i=0;i<=6;i++)            //plane width is 402.0
+        for(let i = 0; i < 7; i++)
         {
-            let GroundMat=mat4.clone(VP);           
-            mat4.translate(GroundMat, GroundMat, [0,0, (i*this.planeWidth)]);  
-            mat4.scale(GroundMat,GroundMat,[1000,1,100]);
-            this.program.setUniformMatrix4fv("MVP",false,GroundMat);
-            this.gl.activeTexture(this.gl.TEXTURE0);
-            this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['grass']);
-            this.program.setUniform1i('texture_sampler',0);
-            this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
-            this.meshes['grass'].draw(this.gl.TRIANGLES);
-    
-            let GroundMat2=mat4.clone(VP);
-            mat4.rotateY(GroundMat2, GroundMat2, 180.0 * Math.PI / 180.0);
-            mat4.translate(GroundMat2, GroundMat2, [0,0, -(i*this.planeWidth - 202.0)]);
-            mat4.scale(GroundMat2,GroundMat2,[1000,1,100]);
-            this.program.setUniformMatrix4fv("MVP",false,GroundMat2);
-            this.gl.activeTexture(this.gl.TEXTURE0);
-            this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['grass']);
-            this.program.setUniform1i('texture_sampler',0);
-            this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
-            this.meshes['grass'].draw(this.gl.TRIANGLES);
+            for(let j = 0; j < this.levelMap[i].length; j++)
+            {
+                if(['G','T'].includes(this.levelMap[i].charAt(j)))
+                {
+                    let GroundMat=mat4.clone(VP);    
+                    mat4.translate(GroundMat, GroundMat, [(i)*2*this.blockSize,0,(j)*2*this.blockSize]);
+                    mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+
+                    this.program.setUniformMatrix4fv("MVP",false,GroundMat);
+                    this.gl.activeTexture(this.gl.TEXTURE0);
+                    this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['grass']);
+                    this.program.setUniform1i('texture_sampler',0);
+                    this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
+                    this.meshes['grass'].draw(this.gl.TRIANGLES);
+                }else if(['R','C','F'].includes(this.levelMap[i].charAt(j)))
+                {
+                    let GroundMat=mat4.clone(VP);    
+                    mat4.translate(GroundMat, GroundMat, [(i)*2*this.blockSize,0,(j)*2*this.blockSize]);
+                    mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+                    mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
+                    this.program.setUniformMatrix4fv("MVP",false,GroundMat);
+                    this.gl.activeTexture(this.gl.TEXTURE0);
+                    this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['road']);
+                    this.program.setUniform1i('texture_sampler',0);
+                    this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
+                    this.meshes['road'].draw(this.gl.TRIANGLES);
+                }
+            }
         }
-
-
 
         this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
         let MatPig = mat4.clone(VP);
-        //mat4.rotateY(MatPig,MatPig,180*Math.PI/180);
         mat4.translate(MatPig,MatPig,this.PlayerPos);
+        //mat4.rotateY(MatPig,MatPig,Math.PI/2);
         this.program.setUniformMatrix4fv("MVP", false, MatPig);
         this.program.setUniform4f("tint", [0.0, 0.0, 0.0, 1.0]);
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['pigtex']);

@@ -46,13 +46,13 @@ export default class FlyCameraController {
             const movement = vec3.create();
             if(this.input.isKeyDown("w")) movement[2] += deltaTime * this.movementSensitivity;
             if(this.input.isKeyDown("s")) movement[2] -= deltaTime * this.movementSensitivity;
-            if(this.input.isKeyDown("d")) movement[0] += deltaTime * this.movementSensitivity;
-            if(this.input.isKeyDown("a")) movement[0] -= deltaTime * this.movementSensitivity;
+            if(this.input.isKeyDown("d")) movement[0] -= deltaTime * this.movementSensitivity;
+            if(this.input.isKeyDown("a")) movement[0] += deltaTime * this.movementSensitivity;
             if(this.input.isKeyDown("q")) movement[1] += deltaTime * this.movementSensitivity;
             if(this.input.isKeyDown("e")) movement[1] -= deltaTime * this.movementSensitivity;
 
             vec3.add(this.PlayerPos, this.PlayerPos, movement);
-            this.camera.position[2] = this.PlayerPos[2]
+            this.camera.position[2] = this.PlayerPos[2];
             this.camera.position[0] = this.PlayerPos[0];
             this.camera.direction=vec3.fromValues(0,-0.8323,0.554197);
 
