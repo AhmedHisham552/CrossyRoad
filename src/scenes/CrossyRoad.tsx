@@ -23,7 +23,6 @@ export default class CrossyRoad extends Scene{
     //Player:Player;
     planeWidth = 402.0;             //width of double planes
     PlayerPos: vec3;
-    maxPlayerPos = this.planeWidth*3.0;
     levelMap: string[]
     blockSize = 25;
     public load(): void {
@@ -32,20 +31,25 @@ export default class CrossyRoad extends Scene{
             ["vert"]:{url:'shaders/crossy.vert', type:'text'},
             ["frag"]:{url:'shaders/crossy.frag', type:'text'},
             ["Pig"]:{url:'models/Pig/pig.obj',type:'text'},
-            ["Dog"]:{url:'models/Dog/Dog.obj', type: 'text'},
+            ["dog"]:{url:'models/dog/dog.obj', type: 'text'},
+            ["car"]:{url:'models/polycar/polycar.obj', type:'text'},
             ["grass"]:{url:'images/Grass/Grass.jfif',type:'image'},
             ['pigtex']:{url:'/models/Pig/pig.png',type:'image'},
-            ["dogtex"]:{url:'models/Dog/Dog_diffuse.jpg', type: 'image'},
+            ["dogtex"]:{url:'models/dog/dogtex.jpg', type: 'image'},
+            ["cartex"]:{url:'models/polycar/polycar.mtl', type: 'image'},
             ["road"]:{url:'images/Grass/road.jpg',type:'image'},
-            ["inputLevel"]:{url:'Levels/Level1.txt',type:'text'}
+            ["inputLevel"]:{url:'Levels/level2.txt',type:'text'}
 
         });
     }
 
     public start(): void {
+                
+        let levelString=this.game.loader.resources['inputLevel'];
+        this.levelMap = levelString.split("\n");
 
         this.PlayerPos = vec3.create();
-        this.PlayerPos = vec3.fromValues(0,0,0);
+        this.PlayerPos = vec3.fromValues(this.levelMap.length * this.blockSize,0,this.levelMap[0].length * this.blockSize);
 
         this.program = new ShaderProgram(this.gl);
         this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
@@ -53,14 +57,15 @@ export default class CrossyRoad extends Scene{
         this.program.link();
 
         this.meshes['Pig']=MeshUtils.LoadOBJMesh(this.gl,this.game.loader.resources["Pig"]);
-        this.meshes['Dog']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Dog"]);
+        this.meshes['dog']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
+        this.meshes['car']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["car"]);
         this.meshes['grass']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
         this.meshes['road']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
 
         this.camera=new Camera();
         this.camera.type='perspective';
         this.camera.position=vec3.fromValues(this.PlayerPos[0],250,this.PlayerPos[2]);
-        this.camera.direction=vec3.fromValues(0,-0.8323,0.554197);
+        this.camera.direction=vec3.fromValues(0,-0.83,0.554197);
         this.camera.aspectRatio=this.gl.drawingBufferWidth/this.gl.drawingBufferHeight;
 
         this.controller = new FlyCameraController(this.camera, this.game.input, this.PlayerPos);
@@ -76,10 +81,10 @@ export default class CrossyRoad extends Scene{
         this.textures['road'] = TextureUtils.LoadImage(this.gl,this.game.loader.resources['road'])
         this.textures['pigtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['pigtex']);
         this.textures['dogtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['dogtex']);
+        this.textures['polycar']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['polycar']);
         this.gl.clearColor(1.0,1.0,1.0,1);
+
         
-        let levelString=this.game.loader.resources['inputLevel'];
-        this.levelMap = levelString.split("\n");
     } 
 
 
@@ -90,15 +95,14 @@ export default class CrossyRoad extends Scene{
         this.program.use();
 
         let VP = this.camera.ViewProjectionMatrix;
-
-        for(let i = 0; i < 7; i++)
+        for(let i = 0; i < this.levelMap.length; i++)
         {
             for(let j = 0; j < this.levelMap[i].length; j++)
             {
                 if(['G','T'].includes(this.levelMap[i].charAt(j)))
                 {
                     let GroundMat=mat4.clone(VP);    
-                    mat4.translate(GroundMat, GroundMat, [(i)*2*this.blockSize,0,(j)*2*this.blockSize]);
+                    mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(i)*2*this.blockSize]);
                     mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
 
                     this.program.setUniformMatrix4fv("MVP",false,GroundMat);
@@ -110,7 +114,7 @@ export default class CrossyRoad extends Scene{
                 }else if(['R','C','F'].includes(this.levelMap[i].charAt(j)))
                 {
                     let GroundMat=mat4.clone(VP);    
-                    mat4.translate(GroundMat, GroundMat, [(i)*2*this.blockSize,0,(j)*2*this.blockSize]);
+                    mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(i)*2*this.blockSize]);
                     mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
                     mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
                     this.program.setUniformMatrix4fv("MVP",false,GroundMat);
@@ -119,6 +123,19 @@ export default class CrossyRoad extends Scene{
                     this.program.setUniform1i('texture_sampler',0);
                     this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
                     this.meshes['road'].draw(this.gl.TRIANGLES);
+                }
+                if(['C','F'].includes(this.levelMap[i].charAt(j)))
+                {
+                    let GroundMat=mat4.clone(VP);    
+                    mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(i)*2*this.blockSize]);
+                   // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+                   // mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
+                    this.program.setUniformMatrix4fv("MVP",false,GroundMat);
+                    this.gl.activeTexture(this.gl.TEXTURE0);
+                    this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['dogtex']);
+                    this.program.setUniform1i('texture_sampler',0);
+                    this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
+                    this.meshes['dog'].draw(this.gl.TRIANGLES);
                 }
             }
         }

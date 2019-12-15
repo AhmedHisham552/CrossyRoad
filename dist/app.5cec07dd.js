@@ -10335,7 +10335,6 @@ function (_super) {
 
     _this.planeWidth = 402.0; //width of double planes
 
-    _this.maxPlayerPos = _this.planeWidth * 3.0;
     _this.blockSize = 25;
     return _this;
   }
@@ -10353,8 +10352,11 @@ function (_super) {
     }, _a["Pig"] = {
       url: 'models/Pig/pig.obj',
       type: 'text'
-    }, _a["Dog"] = {
-      url: 'models/Dog/Dog.obj',
+    }, _a["dog"] = {
+      url: 'models/dog/dog.obj',
+      type: 'text'
+    }, _a["car"] = {
+      url: 'models/polycar/polycar.obj',
       type: 'text'
     }, _a["grass"] = {
       url: 'images/Grass/Grass.jfif',
@@ -10363,26 +10365,32 @@ function (_super) {
       url: '/models/Pig/pig.png',
       type: 'image'
     }, _a["dogtex"] = {
-      url: 'models/Dog/Dog_diffuse.jpg',
+      url: 'models/dog/dogtex.jpg',
+      type: 'image'
+    }, _a["cartex"] = {
+      url: 'models/polycar/polycar.mtl',
       type: 'image'
     }, _a["road"] = {
       url: 'images/Grass/road.jpg',
       type: 'image'
     }, _a["inputLevel"] = {
-      url: 'Levels/Level1.txt',
+      url: 'Levels/level2.txt',
       type: 'text'
     }, _a));
   };
 
   CrossyRoad.prototype.start = function () {
+    var levelString = this.game.loader.resources['inputLevel'];
+    this.levelMap = levelString.split("\n");
     this.PlayerPos = gl_matrix_1.vec3.create();
-    this.PlayerPos = gl_matrix_1.vec3.fromValues(0, 0, 0);
+    this.PlayerPos = gl_matrix_1.vec3.fromValues(this.levelMap.length * this.blockSize, 0, this.levelMap[0].length * this.blockSize);
     this.program = new shader_program_1.default(this.gl);
     this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
     this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
     this.program.link();
     this.meshes['Pig'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Pig"]);
-    this.meshes['Dog'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Dog"]);
+    this.meshes['dog'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
+    this.meshes['car'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["car"]);
     this.meshes['grass'] = MeshUtils.Plane(this.gl, {
       min: [0, 0],
       max: [1, 1]
@@ -10394,7 +10402,7 @@ function (_super) {
     this.camera = new camera_1.default();
     this.camera.type = 'perspective';
     this.camera.position = gl_matrix_1.vec3.fromValues(this.PlayerPos[0], 250, this.PlayerPos[2]);
-    this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.8323, 0.554197);
+    this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.83, 0.554197);
     this.camera.aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
     this.controller = new fly_camera_controller_1.default(this.camera, this.game.input, this.PlayerPos);
     this.controller.movementSensitivity = 0.5;
@@ -10407,9 +10415,8 @@ function (_super) {
     this.textures['road'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['road']);
     this.textures['pigtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['pigtex']);
     this.textures['dogtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['dogtex']);
+    this.textures['polycar'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['polycar']);
     this.gl.clearColor(1.0, 1.0, 1.0, 1);
-    var levelString = this.game.loader.resources['inputLevel'];
-    this.levelMap = levelString.split("\n");
   };
 
   CrossyRoad.prototype.draw = function (deltaTime) {
@@ -10419,11 +10426,11 @@ function (_super) {
     this.program.use();
     var VP = this.camera.ViewProjectionMatrix;
 
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < this.levelMap.length; i++) {
       for (var j = 0; j < this.levelMap[i].length; j++) {
         if (['G', 'T'].includes(this.levelMap[i].charAt(j))) {
           var GroundMat = gl_matrix_1.mat4.clone(VP);
-          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [i * 2 * this.blockSize, 0, j * 2 * this.blockSize]);
+          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]);
           gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, 1, this.blockSize]); //game block = 25*25  
 
           this.program.setUniformMatrix4fv("MVP", false, GroundMat);
@@ -10434,7 +10441,7 @@ function (_super) {
           this.meshes['grass'].draw(this.gl.TRIANGLES);
         } else if (['R', 'C', 'F'].includes(this.levelMap[i].charAt(j))) {
           var GroundMat = gl_matrix_1.mat4.clone(VP);
-          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [i * 2 * this.blockSize, 0, j * 2 * this.blockSize]);
+          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]);
           gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, 1, this.blockSize]); //game block = 25*25  
 
           gl_matrix_1.mat4.rotateY(GroundMat, GroundMat, Math.PI / 2);
@@ -10444,6 +10451,19 @@ function (_super) {
           this.program.setUniform1i('texture_sampler', 0);
           this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
           this.meshes['road'].draw(this.gl.TRIANGLES);
+        }
+
+        if (['C', 'F'].includes(this.levelMap[i].charAt(j))) {
+          var GroundMat = gl_matrix_1.mat4.clone(VP);
+          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]); // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+          // mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
+
+          this.program.setUniformMatrix4fv("MVP", false, GroundMat);
+          this.gl.activeTexture(this.gl.TEXTURE0);
+          this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['dogtex']);
+          this.program.setUniform1i('texture_sampler', 0);
+          this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
+          this.meshes['dog'].draw(this.gl.TRIANGLES);
         }
       }
     }
@@ -10551,7 +10571,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53540" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54067" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
