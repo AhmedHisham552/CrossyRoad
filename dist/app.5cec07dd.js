@@ -10336,6 +10336,7 @@ function (_super) {
     _this.planeWidth = 402.0; //width of double planes
 
     _this.blockSize = 25;
+    _this.carPositions = [];
     return _this;
   }
 
@@ -10367,10 +10368,8 @@ function (_super) {
     }, _a["dogtex"] = {
       url: 'models/dog/dogtex.jpg',
       type: 'image'
-    }, _a["cartex"] = {
-      url: 'models/polycar/polycar.mtl',
-      type: 'image'
-    }, _a["road"] = {
+    }, //["cartex"]:{url:'models/polycar/polycar.mtl', type: 'image'},
+    _a["road"] = {
       url: 'images/Grass/road.jpg',
       type: 'image'
     }, _a["inputLevel"] = {
@@ -10389,8 +10388,8 @@ function (_super) {
     this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
     this.program.link();
     this.meshes['Pig'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Pig"]);
-    this.meshes['dog'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
-    this.meshes['car'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["car"]);
+    this.meshes['dog'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]); //this.meshes['car']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["car"]);
+
     this.meshes['grass'] = MeshUtils.Plane(this.gl, {
       min: [0, 0],
       max: [1, 1]
@@ -10414,16 +10413,27 @@ function (_super) {
     this.textures['grass'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['grass']);
     this.textures['road'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['road']);
     this.textures['pigtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['pigtex']);
-    this.textures['dogtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['dogtex']);
-    this.textures['polycar'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['polycar']);
-    this.gl.clearColor(1.0, 1.0, 1.0, 1);
+    this.textures['dogtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['dogtex']); //this.textures['polycar']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['polycar']);
+
+    this.gl.clearColor(1.0, 1.0, 1.0, 1); //console.log(vec3.fromValues(0,0,0));
+
+    for (var i = 0; i < this.levelMap.length; i++) {
+      for (var j = 0; j < this.levelMap[i].length; j++) {
+        if (['C', 'F'].includes(this.levelMap[i].charAt(j))) {
+          this.carPositions.push(gl_matrix_1.vec3.fromValues(j * 2 * this.blockSize, 0, i * 2 * this.blockSize));
+        }
+      }
+    }
   };
 
   CrossyRoad.prototype.draw = function (deltaTime) {
-    // Here will draw the scene (deltaTime is the difference in time between this frame and the past frame in milliseconds)
+    var _this = this; // Here will draw the scene (deltaTime is the difference in time between this frame and the past frame in milliseconds)
+
+
     this.controller.update(deltaTime);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    this.program.use();
+    this.program.use(); // console.log(this.carPositions.length);
+
     var VP = this.camera.ViewProjectionMatrix;
 
     for (var i = 0; i < this.levelMap.length; i++) {
@@ -10452,24 +10462,30 @@ function (_super) {
           this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
           this.meshes['road'].draw(this.gl.TRIANGLES);
         }
-
-        if (['C', 'F'].includes(this.levelMap[i].charAt(j))) {
-          var GroundMat = gl_matrix_1.mat4.clone(VP);
-          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]); // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
-
-          gl_matrix_1.mat4.rotateY(GroundMat, GroundMat, Math.PI / 2);
-          gl_matrix_1.mat4.rotateX(GroundMat, GroundMat, -Math.PI / 2);
-          if (i % 2) gl_matrix_1.mat4.rotateZ(GroundMat, GroundMat, Math.PI);
-          this.program.setUniformMatrix4fv("MVP", false, GroundMat);
-          this.gl.activeTexture(this.gl.TEXTURE0);
-          this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['dogtex']);
-          this.program.setUniform1i('texture_sampler', 0);
-          this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
-          this.meshes['dog'].draw(this.gl.TRIANGLES);
-        }
       }
     }
 
+    this.carPositions.forEach(function (carPos) {
+      var GroundMat = gl_matrix_1.mat4.clone(VP);
+      gl_matrix_1.mat4.translate(GroundMat, GroundMat, [carPos[0], 0, carPos[2]]); // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+
+      gl_matrix_1.mat4.rotateY(GroundMat, GroundMat, Math.PI / 2);
+      gl_matrix_1.mat4.rotateX(GroundMat, GroundMat, -Math.PI / 2);
+      if (carPos[0] / (2 * _this.blockSize) % 2) //if a car is in an odd lane, rotate it
+        gl_matrix_1.mat4.rotateZ(GroundMat, GroundMat, Math.PI);
+
+      _this.program.setUniformMatrix4fv("MVP", false, GroundMat);
+
+      _this.gl.activeTexture(_this.gl.TEXTURE0);
+
+      _this.gl.bindTexture(_this.gl.TEXTURE_2D, _this.textures['dogtex']);
+
+      _this.program.setUniform1i('texture_sampler', 0);
+
+      _this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
+
+      _this.meshes['dog'].draw(_this.gl.TRIANGLES);
+    });
     this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
     var MatPig = gl_matrix_1.mat4.clone(VP);
     gl_matrix_1.mat4.translate(MatPig, MatPig, this.PlayerPos); //mat4.rotateY(MatPig,MatPig,Math.PI/2);
@@ -10573,7 +10589,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56424" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56585" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

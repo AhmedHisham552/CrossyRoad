@@ -6,6 +6,7 @@
         "dom"
       ],
       "jsx": "react",
-      "jsxFactory": "createElement"
+      "jsxFactory": "createElement",
+      "sourceMap": true
     }
   }
