@@ -10466,12 +10466,19 @@ function (_super) {
     }
 
     this.carPositions.forEach(function (carPos) {
-      var GroundMat = gl_matrix_1.mat4.clone(VP);
-      gl_matrix_1.mat4.translate(GroundMat, GroundMat, [carPos[0], 0, carPos[2]]); // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+      var GroundMat = gl_matrix_1.mat4.clone(VP); //translate cars in their direction
+
+      if (carPos[2] / (2 * _this.blockSize) % 2) {
+        var temp = performance.now() * 0.5 % (_this.blockSize * _this.levelMap[0].length * 2);
+        gl_matrix_1.mat4.translate(GroundMat, GroundMat, [_this.blockSize * _this.levelMap[0].length * 2 - temp, 0, carPos[2]]);
+      } else {
+        gl_matrix_1.mat4.translate(GroundMat, GroundMat, [(carPos[0] + performance.now() * 0.5) % (_this.blockSize * _this.levelMap[0].length * 2), 0, carPos[2]]);
+      } // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+
 
       gl_matrix_1.mat4.rotateY(GroundMat, GroundMat, Math.PI / 2);
       gl_matrix_1.mat4.rotateX(GroundMat, GroundMat, -Math.PI / 2);
-      if (carPos[0] / (2 * _this.blockSize) % 2) //if a car is in an odd lane, rotate it
+      if (carPos[2] / (2 * _this.blockSize) % 2) //if a car is in an odd lane, rotate it
         gl_matrix_1.mat4.rotateZ(GroundMat, GroundMat, Math.PI);
 
       _this.program.setUniformMatrix4fv("MVP", false, GroundMat);

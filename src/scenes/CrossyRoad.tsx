@@ -144,12 +144,21 @@ export default class CrossyRoad extends Scene{
         
 
         this.carPositions.forEach(carPos => {
-                    let GroundMat=mat4.clone(VP);    
-                    mat4.translate(GroundMat, GroundMat, [carPos[0],0,carPos[2]]);
+                    let GroundMat=mat4.clone(VP);  
+
+                    //translate cars in their direction
+                    if((carPos[2]/(2*this.blockSize))%2){
+                        let temp=(performance.now()*0.5)%(this.blockSize*this.levelMap[0].length*2);  
+                        mat4.translate(GroundMat, GroundMat, [(this.blockSize*this.levelMap[0].length*2)-temp,0,carPos[2]]);
+                    }
+                    else{
+                        mat4.translate(GroundMat, GroundMat, [(carPos[0]+performance.now()*0.5)%(this.blockSize*this.levelMap[0].length*2),0,carPos[2]]);
+                    }
+                    
                    // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
                     mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
                     mat4.rotateX(GroundMat,GroundMat, -Math.PI/2);
-                    if((carPos[0]/(2*this.blockSize))%2)            //if a car is in an odd lane, rotate it
+                    if((carPos[2]/(2*this.blockSize))%2)            //if a car is in an odd lane, rotate it
                         mat4.rotateZ(GroundMat,GroundMat, Math.PI);
                     
                     this.program.setUniformMatrix4fv("MVP",false,GroundMat);
