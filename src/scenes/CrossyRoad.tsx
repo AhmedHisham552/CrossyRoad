@@ -129,7 +129,11 @@ export default class CrossyRoad extends Scene{
                     let GroundMat=mat4.clone(VP);    
                     mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(i)*2*this.blockSize]);
                    // mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
-                   // mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
+                    mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
+                    mat4.rotateX(GroundMat,GroundMat, -Math.PI/2);
+                    if(i%2)
+                        mat4.rotateZ(GroundMat,GroundMat, Math.PI);
+                    
                     this.program.setUniformMatrix4fv("MVP",false,GroundMat);
                     this.gl.activeTexture(this.gl.TEXTURE0);
                     this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['dogtex']);
