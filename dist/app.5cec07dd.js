@@ -10223,18 +10223,19 @@ function () {
   FlyCameraController.prototype.update = function (deltaTime) {
     if (this.input.isButtonJustDown(0)) {
       this.input.requestPointerLock();
-    } else if (this.input.isButtonJustUp(0)) {
-      this.input.exitPointerLock();
-    }
+    } // } else if(this.input.isButtonJustUp(0)){
+    //     this.input.exitPointerLock();
+    // }
 
-    if (this.input.isButtonDown(0)) {
+
+    if (this.input.isPointerLocked()) {
       var movement = gl_matrix_1.vec3.create();
-      if (this.input.isKeyDown("w")) movement[2] += deltaTime * this.movementSensitivity;
-      if (this.input.isKeyDown("s")) movement[2] -= deltaTime * this.movementSensitivity;
-      if (this.input.isKeyDown("d")) movement[0] -= deltaTime * this.movementSensitivity;
-      if (this.input.isKeyDown("a")) movement[0] += deltaTime * this.movementSensitivity;
-      if (this.input.isKeyDown("q")) movement[1] += deltaTime * this.movementSensitivity;
-      if (this.input.isKeyDown("e")) movement[1] -= deltaTime * this.movementSensitivity;
+      if (this.input.isKeyJustDown("w")) movement[2] += 50;
+      if (this.input.isKeyJustDown("s")) movement[2] -= 50;
+      if (this.input.isKeyJustDown("d")) movement[0] -= 50;
+      if (this.input.isKeyJustDown("a")) movement[0] += 50;
+      if (this.input.isKeyJustDown("q")) movement[1] += 50;
+      if (this.input.isKeyJustDown("e")) movement[1] -= 50;
       gl_matrix_1.vec3.add(this.PlayerPos, this.PlayerPos, movement);
       this.camera.position[2] = this.PlayerPos[2];
       this.camera.position[0] = this.PlayerPos[0];
@@ -10331,10 +10332,7 @@ function (_super) {
 
     _this.meshes = {};
     _this.textures = {};
-    _this.current_texture = 0; //Player:Player;
-
-    _this.planeWidth = 402.0; //width of double planes
-
+    _this.current_texture = 0;
     _this.blockSize = 25;
     _this.carPositions = [];
     return _this;
@@ -10382,7 +10380,8 @@ function (_super) {
     var levelString = this.game.loader.resources['inputLevel'];
     this.levelMap = levelString.split("\n");
     this.PlayerPos = gl_matrix_1.vec3.create();
-    this.PlayerPos = gl_matrix_1.vec3.fromValues(this.levelMap.length * this.blockSize, 0, this.levelMap[0].length * this.blockSize);
+    this.PlayerPos = gl_matrix_1.vec3.fromValues(this.levelMap[1].length * this.blockSize, 0, 0);
+    console.log(this.PlayerPos);
     this.program = new shader_program_1.default(this.gl);
     this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
     this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
@@ -10432,7 +10431,8 @@ function (_super) {
 
     this.controller.update(deltaTime);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    this.program.use(); // console.log(this.carPositions.length);
+    this.program.use();
+    console.log(this.PlayerPos); // console.log(this.carPositions.length);
 
     var VP = this.camera.ViewProjectionMatrix;
 
@@ -10589,7 +10589,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56585" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52487" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

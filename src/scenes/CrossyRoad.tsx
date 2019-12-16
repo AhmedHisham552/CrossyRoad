@@ -22,7 +22,7 @@ export default class CrossyRoad extends Scene{
     current_texture: number = 0;
     sampler: WebGLSampler;
     //Player:Player;
-    planeWidth = 402.0;             //width of double planes
+    //planeWidth = 402.0;             //width of double planes
     PlayerPos: vec3;
     levelMap: string[];
     blockSize = 25;
@@ -49,10 +49,10 @@ export default class CrossyRoad extends Scene{
                 
         let levelString=this.game.loader.resources['inputLevel'];
         this.levelMap = levelString.split("\n");
-
         this.PlayerPos = vec3.create();
-        this.PlayerPos = vec3.fromValues(this.levelMap.length * this.blockSize,0,this.levelMap[0].length * this.blockSize);
-
+        this.PlayerPos = vec3.fromValues(this.levelMap[1].length*this.blockSize,0,0);
+        console.log(this.PlayerPos);
+        
         this.program = new ShaderProgram(this.gl);
         this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
         this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
@@ -106,9 +106,8 @@ export default class CrossyRoad extends Scene{
         this.controller.update(deltaTime);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.program.use();
-
+        console.log(this.PlayerPos);
        // console.log(this.carPositions.length);
-
         let VP = this.camera.ViewProjectionMatrix;
         for(let i = 0; i < this.levelMap.length; i++)
         {

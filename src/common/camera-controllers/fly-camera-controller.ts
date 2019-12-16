@@ -38,19 +38,19 @@ export default class FlyCameraController {
     public update(deltaTime: number) {
         if(this.input.isButtonJustDown(0)){
             this.input.requestPointerLock();
-        } else if(this.input.isButtonJustUp(0)){
-            this.input.exitPointerLock();
         }
+        // } else if(this.input.isButtonJustUp(0)){
+        //     this.input.exitPointerLock();
+        // }
 
-        if(this.input.isButtonDown(0)){
+        if(this.input.isPointerLocked()){
             const movement = vec3.create();
-            if(this.input.isKeyDown("w")) movement[2] += deltaTime * this.movementSensitivity;
-            if(this.input.isKeyDown("s")) movement[2] -= deltaTime * this.movementSensitivity;
-            if(this.input.isKeyDown("d")) movement[0] -= deltaTime * this.movementSensitivity;
-            if(this.input.isKeyDown("a")) movement[0] += deltaTime * this.movementSensitivity;
-            if(this.input.isKeyDown("q")) movement[1] += deltaTime * this.movementSensitivity;
-            if(this.input.isKeyDown("e")) movement[1] -= deltaTime * this.movementSensitivity;
-
+            if(this.input.isKeyJustDown("w")) movement[2] += 50;
+            if(this.input.isKeyJustDown("s")) movement[2] -= 50;
+            if(this.input.isKeyJustDown("d")) movement[0] -= 50;
+            if(this.input.isKeyJustDown("a")) movement[0] += 50;
+            if(this.input.isKeyJustDown("q")) movement[1] += 50;
+            if(this.input.isKeyJustDown("e")) movement[1] -= 50;
             vec3.add(this.PlayerPos, this.PlayerPos, movement);
             this.camera.position[2] = this.PlayerPos[2];
             this.camera.position[0] = this.PlayerPos[0];
