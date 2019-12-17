@@ -27,6 +27,21 @@ export default class CrossyRoad extends Scene{
     levelMap: string[];
     blockSize = 25;
     carPositions: Array<vec3> = [];
+    // This will store our material properties
+    material = {
+        diffuse: vec3.fromValues(0.5,0.3,0.1),
+        specular: vec3.fromValues(1,1,1),
+        ambient: vec3.fromValues(0.5,0.3,0.1),
+        shininess: 1
+    };
+
+    // And this will store our directional light properties
+    light = {
+        diffuse: vec3.fromValues(1,1,1),
+        specular: vec3.fromValues(1,1,1),
+        ambient: vec3.fromValues(0.1,0.1,0.1),
+        direction: vec3.fromValues(0,-1,-1)
+    };
     public load(): void {
         // Here we will tell the loader which files to load from the webserver
         this.game.loader.load({
@@ -57,7 +72,7 @@ export default class CrossyRoad extends Scene{
         this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
         this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
         this.program.link();
-
+        
         this.meshes['Pig']=MeshUtils.LoadOBJMesh(this.gl,this.game.loader.resources["Pig"]);
         this.meshes['dog']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
         //this.meshes['car']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["car"]);
@@ -109,33 +124,57 @@ export default class CrossyRoad extends Scene{
         console.log(this.PlayerPos);
        // console.log(this.carPositions.length);
         let VP = this.camera.ViewProjectionMatrix;
-        for(let i = 0; i < this.levelMap.length; i++)
+        this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
+        this.program.setUniform3fv("cam_position",this.camera.position);
+
+         // Send light properties (remember to normalize the light direction)
+         this.program.setUniform3f("light.diffuse", this.light.diffuse);
+         this.program.setUniform3f("light.specular", this.light.specular);
+         this.program.setUniform3f("light.ambient", this.light.ambient);
+         this.program.setUniform3f("light.direction", vec3.normalize(vec3.create(), this.light.direction));
+        
+        this.program.setUniform3f("material.diffuse", this.material.diffuse);
+        this.program.setUniform3f("material.specular", this.material.specular);
+        this.program.setUniform3f("material.ambient", this.material.ambient);
+        this.program.setUniform1f("material.shininess", this.material.shininess);
+
+         for(let i = 0; i < this.levelMap.length; i++)
         {
             for(let j = 0; j < this.levelMap[i].length; j++)
             {
                 if(['G','T'].includes(this.levelMap[i].charAt(j)))
                 {
-                    let GroundMat=mat4.clone(VP);    
+                    let GroundMat=mat4.create();    
                     mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(i)*2*this.blockSize]);
                     mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
 
-                    this.program.setUniformMatrix4fv("MVP",false,GroundMat);
+                    this.program.setUniformMatrix4fv("M",false,GroundMat);
+                    this.program.setUniformMatrix4fv("M_it",true,mat4.invert(mat4.create(),GroundMat));
                     this.gl.activeTexture(this.gl.TEXTURE0);
                     this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['grass']);
                     this.program.setUniform1i('texture_sampler',0);
                     this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
+                    this.program.setUniform3f("material.diffuse", this.material.diffuse);
+                    this.program.setUniform3f("material.specular", this.material.specular);
+                    this.program.setUniform3f("material.ambient", this.material.ambient);
+                    this.program.setUniform1f("material.shininess", this.material.shininess);
                     this.meshes['grass'].draw(this.gl.TRIANGLES);
                 }else if(['R','C','F'].includes(this.levelMap[i].charAt(j)))
                 {
-                    let GroundMat=mat4.clone(VP);    
+                    let GroundMat=mat4.create();    
                     mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(i)*2*this.blockSize]);
                     mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
                     mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
-                    this.program.setUniformMatrix4fv("MVP",false,GroundMat);
+                    this.program.setUniformMatrix4fv("M",false,GroundMat);
+                    this.program.setUniformMatrix4fv("M_it",true,mat4.invert(mat4.create(),GroundMat));
                     this.gl.activeTexture(this.gl.TEXTURE0);
                     this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['road']);
                     this.program.setUniform1i('texture_sampler',0);
                     this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
+                    this.program.setUniform3f("material.diffuse", this.material.diffuse);
+                    this.program.setUniform3f("material.specular", this.material.specular);
+                    this.program.setUniform3f("material.ambient", this.material.ambient);
+                    this.program.setUniform1f("material.shininess", 2);
                     this.meshes['road'].draw(this.gl.TRIANGLES);
                 }
             }
@@ -144,7 +183,7 @@ export default class CrossyRoad extends Scene{
         
 
         this.carPositions.forEach(carPos => {
-                    let GroundMat=mat4.clone(VP);  
+                    let GroundMat=mat4.create();  
 
                     //translate cars in their direction
                     if((carPos[2]/(2*this.blockSize))%2){
@@ -161,21 +200,31 @@ export default class CrossyRoad extends Scene{
                     if((carPos[2]/(2*this.blockSize))%2)            //if a car is in an odd lane, rotate it
                         mat4.rotateZ(GroundMat,GroundMat, Math.PI);
                     
-                    this.program.setUniformMatrix4fv("MVP",false,GroundMat);
+                    this.program.setUniformMatrix4fv("M",false,GroundMat);
+                    this.program.setUniformMatrix4fv("M_it",true,mat4.invert(mat4.create(),GroundMat));
                     this.gl.activeTexture(this.gl.TEXTURE0);
                     this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['dogtex']);
                     this.program.setUniform1i('texture_sampler',0);
+                    this.program.setUniform3f("material.diffuse", this.material.diffuse);
+                    this.program.setUniform3f("material.specular", this.material.specular);
+                    this.program.setUniform3f("material.ambient", this.material.ambient);
+                    this.program.setUniform1f("material.shininess", 2);
                     this.program.setUniform4f("tint", [0.0, 1.0, 0.0, 1.0]);
                     this.meshes['dog'].draw(this.gl.TRIANGLES);
         });
 
-        this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
-        let MatPig = mat4.clone(VP);
+        let MatPig = mat4.create();
         mat4.translate(MatPig,MatPig,this.PlayerPos);
         //mat4.rotateY(MatPig,MatPig,Math.PI/2);
-        this.program.setUniformMatrix4fv("MVP", false, MatPig);
+        this.program.setUniformMatrix4fv("M", false, MatPig);
+        this.program.setUniformMatrix4fv("M_it",true,mat4.invert(mat4.create(),MatPig));
+        this.program.setUniform3f("material.diffuse", this.material.diffuse);
+        this.program.setUniform3f("material.specular", this.material.specular);
+        this.program.setUniform3f("material.ambient", this.material.ambient);
+        this.program.setUniform1f("material.shininess", 2);
         this.program.setUniform4f("tint", [0.0, 0.0, 0.0, 1.0]);
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['pigtex']);
+        
         this.meshes['Pig'].draw(this.gl.TRIANGLES);
 
 
