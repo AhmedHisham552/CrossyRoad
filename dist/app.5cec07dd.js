@@ -10223,10 +10223,7 @@ function () {
   FlyCameraController.prototype.update = function (deltaTime) {
     if (this.input.isButtonJustDown(0)) {
       this.input.requestPointerLock();
-    } // } else if(this.input.isButtonJustUp(0)){
-    //     this.input.exitPointerLock();
-    // }
-
+    }
 
     if (this.input.isPointerLocked()) {
       var movement = gl_matrix_1.vec3.create();
@@ -10260,7 +10257,297 @@ function () {
 }();
 
 exports.default = FlyCameraController;
-},{"gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"src/scenes/CrossyRoad.tsx":[function(require,module,exports) {
+},{"gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"node_modules/tsx-create-element/node_modules/html-tags/html-tags.json":[function(require,module,exports) {
+module.exports = ["a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "keygen", "label", "legend", "li", "link", "main", "map", "mark", "math", "menu", "menuitem", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "picture", "pre", "progress", "q", "rb", "rp", "rt", "rtc", "ruby", "s", "samp", "script", "section", "select", "slot", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "svg", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"];
+},{}],"node_modules/tsx-create-element/node_modules/html-tags/index.js":[function(require,module,exports) {
+'use strict';
+
+module.exports = require('./html-tags.json');
+},{"./html-tags.json":"node_modules/tsx-create-element/node_modules/html-tags/html-tags.json"}],"node_modules/svg-tags/lib/svg-tags.json":[function(require,module,exports) {
+module.exports = [
+	"a",
+	"altGlyph",
+	"altGlyphDef",
+	"altGlyphItem",
+	"animate",
+	"animateColor",
+	"animateMotion",
+	"animateTransform",
+	"circle",
+	"clipPath",
+	"color-profile",
+	"cursor",
+	"defs",
+	"desc",
+	"ellipse",
+	"feBlend",
+	"feColorMatrix",
+	"feComponentTransfer",
+	"feComposite",
+	"feConvolveMatrix",
+	"feDiffuseLighting",
+	"feDisplacementMap",
+	"feDistantLight",
+	"feFlood",
+	"feFuncA",
+	"feFuncB",
+	"feFuncG",
+	"feFuncR",
+	"feGaussianBlur",
+	"feImage",
+	"feMerge",
+	"feMergeNode",
+	"feMorphology",
+	"feOffset",
+	"fePointLight",
+	"feSpecularLighting",
+	"feSpotLight",
+	"feTile",
+	"feTurbulence",
+	"filter",
+	"font",
+	"font-face",
+	"font-face-format",
+	"font-face-name",
+	"font-face-src",
+	"font-face-uri",
+	"foreignObject",
+	"g",
+	"glyph",
+	"glyphRef",
+	"hkern",
+	"image",
+	"line",
+	"linearGradient",
+	"marker",
+	"mask",
+	"metadata",
+	"missing-glyph",
+	"mpath",
+	"path",
+	"pattern",
+	"polygon",
+	"polyline",
+	"radialGradient",
+	"rect",
+	"script",
+	"set",
+	"stop",
+	"style",
+	"svg",
+	"switch",
+	"symbol",
+	"text",
+	"textPath",
+	"title",
+	"tref",
+	"tspan",
+	"use",
+	"view",
+	"vkern"
+];
+},{}],"node_modules/svg-tags/lib/index.js":[function(require,module,exports) {
+module.exports = require( './svg-tags.json' );
+},{"./svg-tags.json":"node_modules/svg-tags/lib/svg-tags.json"}],"node_modules/tsx-create-element/dist/es6/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.createElement = createElement;
+exports.mount = mount;
+exports.findElementByChildPositions = findElementByChildPositions;
+exports.focusActiveElement = focusActiveElement;
+exports.setActiveElement = setActiveElement;
+exports.getActiveElementInfo = getActiveElementInfo;
+
+var htmlTags = _interopRequireWildcard(require("html-tags"));
+
+var svgTags = _interopRequireWildcard(require("svg-tags"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+/**
+ * Decamelizes a string with/without a custom separator (hyphen by default).
+ * from: https://ourcodeworld.com/articles/read/608/how-to-camelize-and-decamelize-strings-in-javascript
+ *
+ * @param str String in camelcase
+ * @param separator Separator for the new decamelized string.
+ */
+function decamelize(str, separator = '-') {
+  return str.replace(/([a-z\d])([A-Z])/g, '$1' + separator + '$2').replace(/([A-Z]+)([A-Z][a-z\d]+)/g, '$1' + separator + '$2').toLowerCase();
+}
+
+function createElement(tag, attrs, ...children) {
+  if (typeof tag === 'function') {
+    const fn = tag;
+    const props = attrs;
+    props.children = children;
+    return fn(props);
+  } else {
+    const ns = tagNamespace(tag);
+    const el = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
+    const map = attrs;
+    let ref;
+
+    for (let name in map) {
+      if (name && map.hasOwnProperty(name)) {
+        let value = map[name];
+
+        if (name === 'className' && value !== void 0) {
+          setAttribute(el, ns, 'class', value.toString());
+        } else if (value === null || value === undefined) {
+          continue;
+        } else if (value === true) {
+          setAttribute(el, ns, name, name);
+        } else if (typeof value === 'function') {
+          if (name === 'ref') {
+            ref = value;
+          } else {
+            el[name.toLowerCase()] = value;
+          }
+        } else if (typeof value === 'object') {
+          setAttribute(el, ns, name, flatten(value));
+        } else {
+          setAttribute(el, ns, name, value.toString());
+        }
+      }
+    }
+
+    if (children && children.length > 0) {
+      appendChildren(el, children);
+    }
+
+    if (ref) {
+      ref(el);
+    }
+
+    return el;
+  }
+}
+
+function setAttribute(el, ns, name, value) {
+  if (ns) {
+    el.setAttributeNS(null, name, value);
+  } else {
+    el.setAttribute(name, value);
+  }
+}
+
+function flatten(o) {
+  const arr = [];
+
+  for (let prop in o) arr.push(`${decamelize(prop, '-')}:${o[prop]}`);
+
+  return arr.join(';');
+}
+
+function addChild(parentElement, child) {
+  if (child === null || child === undefined || typeof child === "boolean") {
+    return;
+  } else if (Array.isArray(child)) {
+    appendChildren(parentElement, child);
+  } else if (isElement(child)) {
+    parentElement.appendChild(child);
+  } else {
+    parentElement.appendChild(document.createTextNode(child.toString()));
+  }
+}
+
+function appendChildren(parentElement, children) {
+  children.forEach(child => addChild(parentElement, child));
+}
+
+function isElement(el) {
+  //nodeType cannot be zero https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+  return !!el.nodeType;
+}
+
+function mount(element, container) {
+  container.innerHTML = '';
+
+  if (element) {
+    addChild(container, element);
+  }
+}
+
+function findElementByChildPositions(childPositions, container) {
+  let element = container || document.body;
+  let childPosition;
+
+  while (element && childPositions.length) {
+    childPosition = childPositions.shift();
+    element = element.children.item(childPosition);
+  }
+
+  if (element) {
+    return element;
+  }
+
+  ;
+}
+
+function focusActiveElement(element, activeElementInfo) {
+  element.focus();
+  element.scrollTop = activeElementInfo.scrollTop;
+  const input = element;
+
+  if (input.setSelectionRange && activeElementInfo && activeElementInfo.selectionStart != null && activeElementInfo.selectionEnd != null) {
+    input.setSelectionRange(activeElementInfo.selectionStart, activeElementInfo.selectionEnd, activeElementInfo.selectionDirection);
+  }
+}
+
+function setActiveElement(activeElementInfo, container) {
+  if (activeElementInfo) {
+    const element = findElementByChildPositions(activeElementInfo.childPositions, container);
+
+    if (element) {
+      focusActiveElement(element, activeElementInfo);
+    }
+  }
+}
+
+function getActiveElementInfo(container) {
+  let element = document.activeElement;
+  const {
+    scrollTop,
+    selectionDirection,
+    selectionEnd,
+    selectionStart
+  } = element;
+  const activeElementInfo = {
+    childPositions: [],
+    scrollTop,
+    selectionDirection,
+    selectionEnd,
+    selectionStart
+  };
+
+  while (element && element !== document.body && element !== container) {
+    activeElementInfo.childPositions.unshift(getChildPosition(element));
+    element = element.parentElement;
+  }
+
+  if ((element === document.body || element === container) && activeElementInfo.childPositions.length) return activeElementInfo;
+}
+
+function getChildPosition(element) {
+  let childPosition = 0;
+
+  while (element = element.previousElementSibling) childPosition++;
+
+  return childPosition;
+}
+
+function tagNamespace(tag) {
+  //issue: this won't disambiguate certain tags which exist in both svg and html: <a>, <title> ...
+  if (tag === 'svg' || svgTags.default.indexOf(tag) >= 0 && !(htmlTags.default.indexOf(tag) >= 0)) {
+    return "http://www.w3.org/2000/svg";
+  }
+}
+},{"html-tags":"node_modules/tsx-create-element/node_modules/html-tags/index.js","svg-tags":"node_modules/svg-tags/lib/index.js"}],"src/scenes/CrossyRoad.tsx":[function(require,module,exports) {
 "use strict";
 
 var __extends = this && this.__extends || function () {
@@ -10322,6 +10609,8 @@ var camera_1 = __importDefault(require("../common/camera"));
 var fly_camera_controller_1 = __importDefault(require("../common/camera-controllers/fly-camera-controller"));
 
 var gl_matrix_1 = require("gl-matrix");
+
+var tsx_create_element_1 = require("tsx-create-element");
 
 var CrossyRoad =
 /** @class */
@@ -10395,8 +10684,10 @@ function (_super) {
     var levelString = this.game.loader.resources['inputLevel'];
     this.levelMap = levelString.split("\n");
     this.PlayerPos = gl_matrix_1.vec3.create();
-    this.PlayerPos = gl_matrix_1.vec3.fromValues(this.levelMap[1].length * this.blockSize, 0, 0);
-    console.log(this.PlayerPos);
+    this.PlayerPos = gl_matrix_1.vec3.fromValues(this.levelMap[0].length * this.blockSize, 0, 0);
+    this.levelLength = this.levelMap.length * this.blockSize * 2 - this.blockSize * 2;
+    this.minimumX = this.blockSize;
+    this.maximumX = this.levelMap[0].length * this.blockSize * 2 - this.blockSize * 4;
     this.program = new shader_program_1.default(this.gl);
     this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
     this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
@@ -10417,7 +10708,6 @@ function (_super) {
     this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.83, 0.554197);
     this.camera.aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
     this.controller = new fly_camera_controller_1.default(this.camera, this.game.input, this.PlayerPos);
-    this.controller.movementSensitivity = 0.5;
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
     this.gl.frontFace(this.gl.CCW);
@@ -10437,6 +10727,8 @@ function (_super) {
         }
       }
     }
+
+    console.log(this.carPositions.length);
   };
 
   CrossyRoad.prototype.draw = function (deltaTime) {
@@ -10444,7 +10736,6 @@ function (_super) {
     this.controller.update(deltaTime);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.program.use();
-    var numberOfRoads = 0;
     var VP = this.camera.ViewProjectionMatrix;
     this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
     this.program.setUniform3fv("cam_position", this.camera.position); // Send light properties
@@ -10486,7 +10777,6 @@ function (_super) {
           this.program.setUniform1f("material.shininess", 2);
           this.program.setUniform1i('texture_sampler', 0);
           this.meshes['road'].draw(this.gl.TRIANGLES);
-          numberOfRoads++;
         }
       }
     }
@@ -10496,7 +10786,7 @@ function (_super) {
       var zFactor = this.origCarPositions[i][2] / 100 % 2 + 1; //Adds a factor to the speed according to the lane of the car to randomize speeds(the +1 at the end to ensure the value is not zero)
 
       var translate_1 = this.carStep * this.incrementalValue * this.carSpeed * zFactor;
-      var MapWidth = this.blockSize * this.levelMap[0].length * 2; //translate cars in their direction
+      var MapWidth = this.blockSize * this.levelMap[0].length * 2 - this.blockSize * 2; //translate cars in their direction
 
       if (this.origCarPositions[i][2] / (2 * this.blockSize) % 2) {
         var translate_2 = this.carStep * this.carSpeed * this.incrementalValue * zFactor % MapWidth;
@@ -10504,7 +10794,7 @@ function (_super) {
         this.carPositions[i][0] = MapWidth - translate_2;
       } else {
         gl_matrix_1.mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0] + translate_1) % MapWidth, 0, this.origCarPositions[i][2]]);
-        this.carPositions[i][0] = this.origCarPositions[i][0] + translate_1 % MapWidth;
+        this.carPositions[i][0] = (this.origCarPositions[i][0] + translate_1) % MapWidth;
       }
 
       gl_matrix_1.mat4.rotateY(CarMat, CarMat, Math.PI / 2);
@@ -10520,17 +10810,29 @@ function (_super) {
       this.program.setUniform1i('texture_sampler', 0);
       this.meshes['dog'].draw(this.gl.TRIANGLES); //Here we check for collision with the current car
 
-      var rangepos = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] + 5, 0, this.PlayerPos[2] + 20); //positive margin for floating point error
+      var rangepos = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] + 10, 0, this.PlayerPos[2] + 30); //positive margin for floating point error
 
-      var rangeneg = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] - 5, 0, this.PlayerPos[2] - 20); //negative margin for floating point error 
+      var rangeneg = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] - 10, 0, this.PlayerPos[2] - 30); //negative margin for floating point error 
 
       var firstCheck = this.carPositions[i][2] <= rangepos[2] && this.carPositions[i][2] >= rangeneg[2]; //Check if Car's Z component is in the collision range of player 
 
       var secondCheck = this.carPositions[i][0] <= rangepos[0] && this.carPositions[i][0] >= rangeneg[0]; //Check if Car's X component is in the collision range of player position
 
       if (firstCheck && secondCheck) {
-        this.end(); //temporarily till we figure out how to stop the drawing loop
+        this.end();
+        this.start(); //restart game upon losing
       }
+    } //Assure that the player doesn't go outside the map boundaries
+
+
+    if (this.PlayerPos[0] > this.maximumX) {
+      this.PlayerPos[0] -= this.blockSize;
+    } else if (this.PlayerPos[0] < this.minimumX) {
+      this.PlayerPos[0] += this.blockSize;
+    }
+
+    if (this.PlayerPos[2] < 0) {
+      this.PlayerPos[2] = 0;
     }
 
     var MatPig = gl_matrix_1.mat4.create();
@@ -10540,7 +10842,12 @@ function (_super) {
 
     this.program.setUniform1f("material.shininess", 1);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['pigtex']);
-    this.meshes['Pig'].draw(this.gl.TRIANGLES);
+    this.meshes['Pig'].draw(this.gl.TRIANGLES); //Checks if the player finished the level
+
+    if (this.PlayerPos[2] == this.levelLength) {
+      this.start(); //restarts level upon finishing
+    }
+
     this.incrementalValue++;
   };
 
@@ -10560,13 +10867,34 @@ function (_super) {
     }
 
     this.textures = {};
+
+    while (this.carPositions.length != 0) {
+      this.carPositions.pop();
+      this.origCarPositions.pop();
+    }
+
+    this.clearControls();
+  };
+
+  CrossyRoad.prototype.endGameText = function () {
+    var controls = document.querySelector('#controls');
+    controls.appendChild(tsx_create_element_1.createElement("div", null, tsx_create_element_1.createElement("div", {
+      className: "control-row"
+    }, tsx_create_element_1.createElement("h1", {
+      style: "color:BLACK;font-size:50px;margin-left:20%"
+    }, "YOU LOST PRESS F5 TO RESTART"))));
+  };
+
+  CrossyRoad.prototype.clearControls = function () {
+    var controls = document.querySelector('#controls');
+    controls.innerHTML = "";
   };
 
   return CrossyRoad;
 }(game_1.Scene);
 
 exports.default = CrossyRoad;
-},{"../common/game":"src/common/game.ts","../common/shader-program":"src/common/shader-program.ts","../common/mesh-utils":"src/common/mesh-utils.ts","../common/texture-utils":"src/common/texture-utils.ts","../common/camera":"src/common/camera.ts","../common/camera-controllers/fly-camera-controller":"src/common/camera-controllers/fly-camera-controller.ts","gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"src/app.ts":[function(require,module,exports) {
+},{"../common/game":"src/common/game.ts","../common/shader-program":"src/common/shader-program.ts","../common/mesh-utils":"src/common/mesh-utils.ts","../common/texture-utils":"src/common/texture-utils.ts","../common/camera":"src/common/camera.ts","../common/camera-controllers/fly-camera-controller":"src/common/camera-controllers/fly-camera-controller.ts","gl-matrix":"node_modules/gl-matrix/esm/index.js","tsx-create-element":"node_modules/tsx-create-element/dist/es6/index.js"}],"src/app.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -10594,21 +10922,7 @@ var scenes = {
 var initialScene = "CrossyRoad"; // Then we add those scenes to the game object and ask it to start the initial scene
 
 game.addScenes(scenes);
-game.startScene(initialScene); // Here we setup a selector element to switch scenes from the webpage
-
-var selector = document.querySelector("#scenes");
-
-for (var name in scenes) {
-  var option = document.createElement("option");
-  option.text = name;
-  option.value = name;
-  selector.add(option);
-}
-
-selector.value = initialScene;
-selector.addEventListener("change", function () {
-  game.startScene(selector.value);
-});
+game.startScene("CrossyRoad");
 },{"./common/game":"src/common/game.ts","./scenes/CrossyRoad":"src/scenes/CrossyRoad.tsx"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';

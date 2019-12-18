@@ -39,9 +39,6 @@ export default class FlyCameraController {
         if(this.input.isButtonJustDown(0)){
             this.input.requestPointerLock();
         }
-        // } else if(this.input.isButtonJustUp(0)){
-        //     this.input.exitPointerLock();
-        // }
 
         if(this.input.isPointerLocked()){
             const movement = vec3.create();

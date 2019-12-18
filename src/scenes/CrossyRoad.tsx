@@ -12,7 +12,6 @@ import { translate } from 'gl-matrix/src/gl-matrix/mat2d';
 //import { Player } from '../Classes/Player';
 import { toRadian } from 'gl-matrix/src/gl-matrix/common';
 import { forEach } from 'gl-matrix/src/gl-matrix/vec4';
-import Player from '../Classes/Player';
 
 export default class CrossyRoad extends Scene{
     program: ShaderProgram;
@@ -26,10 +25,14 @@ export default class CrossyRoad extends Scene{
     incrementalValue=0;
     levelMap: string[];
     blockSize = 25;
+    levelLength;
     carPositions: Array<vec3> = [];
     origCarPositions:Array<vec3>=[];
     carStep=10;
     carSpeed=1;
+    //these two variables will store the value of minimum and maximum horizontal displacement for the player model
+    minimumX;
+    maximumX;
     // This will store our material properties
     material = {
         diffuse: vec3.fromValues(0.5,0.3,0.1),
@@ -62,12 +65,14 @@ export default class CrossyRoad extends Scene{
     }
 
     public start(): void {
-                
         let levelString=this.game.loader.resources['inputLevel'];
         this.levelMap = levelString.split("\n");
         this.PlayerPos = vec3.create();
-        this.PlayerPos = vec3.fromValues(this.levelMap[1].length*this.blockSize,0,0);
-        console.log(this.PlayerPos);
+        this.PlayerPos = vec3.fromValues(this.levelMap[0].length*this.blockSize,0,0);
+        this.levelLength=(this.levelMap.length*this.blockSize*2)-this.blockSize*2;
+        this.minimumX=this.blockSize;
+        this.maximumX=(this.levelMap[0].length*this.blockSize*2)-this.blockSize*4;
+
         this.program = new ShaderProgram(this.gl);
         this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
         this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
@@ -85,7 +90,6 @@ export default class CrossyRoad extends Scene{
         this.camera.aspectRatio=this.gl.drawingBufferWidth/this.gl.drawingBufferHeight;
 
         this.controller = new FlyCameraController(this.camera, this.game.input, this.PlayerPos);
-        this.controller.movementSensitivity = 0.5;
 
         this.gl.enable(this.gl.CULL_FACE);
         this.gl.cullFace(this.gl.BACK);
@@ -111,7 +115,7 @@ export default class CrossyRoad extends Scene{
                 }
             }
         }
-        
+        console.log(this.carPositions.length);
     } 
 
 
@@ -120,7 +124,6 @@ export default class CrossyRoad extends Scene{
         this.controller.update(deltaTime);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.program.use();
-        let numberOfRoads=0;
         let VP = this.camera.ViewProjectionMatrix;
         this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
         this.program.setUniform3fv("cam_position",this.camera.position);
@@ -171,7 +174,6 @@ export default class CrossyRoad extends Scene{
                     this.program.setUniform1i('texture_sampler',0);
 
                     this.meshes['road'].draw(this.gl.TRIANGLES);
-                    numberOfRoads++;
                 }
             }
         }
@@ -180,7 +182,7 @@ export default class CrossyRoad extends Scene{
                     let CarMat=mat4.create();  
                     let zFactor=((this.origCarPositions[i][2]/100)%2)+1;      //Adds a factor to the speed according to the lane of the car to randomize speeds(the +1 at the end to ensure the value is not zero)
                     let translate = this.carStep*this.incrementalValue*this.carSpeed*zFactor;
-                    let MapWidth=this.blockSize*this.levelMap[0].length*2;
+                    let MapWidth=(this.blockSize*this.levelMap[0].length*2)-this.blockSize*2;
 
                    //translate cars in their direction
                     if((this.origCarPositions[i][2]/(2*this.blockSize))%2){
@@ -190,7 +192,7 @@ export default class CrossyRoad extends Scene{
                     }
                     else{
                         mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0]+translate)%MapWidth,0,this.origCarPositions[i][2]]);
-                        this.carPositions[i][0]=(this.origCarPositions[i][0]+translate%MapWidth);
+                        this.carPositions[i][0]=((this.origCarPositions[i][0]+translate)%MapWidth);
                     }
   
                     mat4.rotateY(CarMat, CarMat, Math.PI/2);
@@ -208,16 +210,26 @@ export default class CrossyRoad extends Scene{
                     this.meshes['dog'].draw(this.gl.TRIANGLES);
 
                     //Here we check for collision with the current car
-                    let rangepos = vec3.fromValues(this.PlayerPos[0]+5,0,this.PlayerPos[2]+20);    //positive margin for floating point error
-                    let rangeneg  = vec3.fromValues(this.PlayerPos[0]-5,0,this.PlayerPos[2]-20);   //negative margin for floating point error 
+                    let rangepos = vec3.fromValues(this.PlayerPos[0]+10,0,this.PlayerPos[2]+30);    //positive margin for floating point error
+                    let rangeneg  = vec3.fromValues(this.PlayerPos[0]-10,0,this.PlayerPos[2]-30);   //negative margin for floating point error 
 
                     let firstCheck:boolean = (this.carPositions[i][2]<=rangepos[2]&&this.carPositions[i][2]>=rangeneg[2]); //Check if Car's Z component is in the collision range of player 
                     let secondCheck:boolean = (this.carPositions[i][0]<=rangepos[0]&&this.carPositions[i][0]>=rangeneg[0]);  //Check if Car's X component is in the collision range of player position
                     if(firstCheck&&secondCheck){
-                        this.end(); //temporarily till we figure out how to stop the drawing loop
+                        this.end();
+                        this.start();   //restart game upon losing
                     }
         }
- 
+        //Assure that the player doesn't go outside the map boundaries
+        if (this.PlayerPos[0]>this.maximumX){
+            this.PlayerPos[0]-=this.blockSize;
+        }
+        else if(this.PlayerPos[0]<this.minimumX){
+            this.PlayerPos[0]+=this.blockSize;
+        }
+        if(this.PlayerPos[2]<0){
+            this.PlayerPos[2]=0;
+        }
         let MatPig = mat4.create();
         mat4.translate(MatPig,MatPig,this.PlayerPos);
 
@@ -227,6 +239,11 @@ export default class CrossyRoad extends Scene{
 
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['pigtex']);
         this.meshes['Pig'].draw(this.gl.TRIANGLES);
+        
+        //Checks if the player finished the level
+        if(this.PlayerPos[2]==this.levelLength){
+            this.start(); //restarts level upon finishing
+        }
         this.incrementalValue++;
     }
 
@@ -241,6 +258,26 @@ export default class CrossyRoad extends Scene{
         for(let key in this.textures)
             this.gl.deleteTexture(this.textures[key]);
         this.textures = {};
+        while(this.carPositions.length!=0){
+            this.carPositions.pop();
+            this.origCarPositions.pop();
+        }
+
+        this.clearControls();
+    }
+    private endGameText() {
+        const controls = document.querySelector('#controls');
+        controls.appendChild(
+            <div>
+                <div className="control-row">
+                    <h1 style="color:BLACK;font-size:50px;margin-left:20%">YOU LOST PRESS F5 TO RESTART</h1>
+                </div>
+            </div>
+        );
     }
 
+    private clearControls() {
+        const controls = document.querySelector('#controls');
+        controls.innerHTML = "";
+    }
 }
