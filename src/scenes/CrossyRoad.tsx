@@ -52,7 +52,6 @@ export default class CrossyRoad extends Scene{
             ["frag"]:{url:'shaders/crossy.frag', type:'text'},
             ["Pig"]:{url:'models/Pig/pig.obj',type:'text'},
             ["dog"]:{url:'models/dog/dog.obj', type: 'text'},
-            ["car"]:{url:'models/polycar/polycar.obj', type:'text'},
             ["grass"]:{url:'images/Grass/Grass.jfif',type:'image'},
             ['pigtex']:{url:'/models/Pig/pig.png',type:'image'},
             ["dogtex"]:{url:'models/dog/dogtex.jpg', type: 'image'},
@@ -121,7 +120,7 @@ export default class CrossyRoad extends Scene{
         this.controller.update(deltaTime);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.program.use();
-
+        let numberOfRoads=0;
         let VP = this.camera.ViewProjectionMatrix;
         this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
         this.program.setUniform3fv("cam_position",this.camera.position);
@@ -172,26 +171,26 @@ export default class CrossyRoad extends Scene{
                     this.program.setUniform1i('texture_sampler',0);
 
                     this.meshes['road'].draw(this.gl.TRIANGLES);
+                    numberOfRoads++;
                 }
             }
         }
 
-        
-
         for(let i=0; i<this.origCarPositions.length; i++){
                     let CarMat=mat4.create();  
-                    let translate = this.carStep*this.incrementalValue*this.carSpeed;
+                    let zFactor=((this.origCarPositions[i][2]/100)%2)+1;      //Adds a factor to the speed according to the lane of the car to randomize speeds(the +1 at the end to ensure the value is not zero)
+                    let translate = this.carStep*this.incrementalValue*this.carSpeed*zFactor;
                     let MapWidth=this.blockSize*this.levelMap[0].length*2;
 
                    //translate cars in their direction
                     if((this.origCarPositions[i][2]/(2*this.blockSize))%2){
-                        let translate = (this.carStep*this.carSpeed*this.incrementalValue)%(MapWidth);  
-                        mat4.translate(CarMat, CarMat, [MapWidth-translate,0,this.origCarPositions[i][2]]);
-                        this.carPositions[i][0]=(this.blockSize*this.levelMap[0].length*2)-translate;
+                        let translate = (this.carStep*this.carSpeed*this.incrementalValue*zFactor)%(MapWidth);  
+                        mat4.translate(CarMat, CarMat, [(MapWidth-translate),0,this.origCarPositions[i][2]]);
+                        this.carPositions[i][0]=(MapWidth-translate);
                     }
                     else{
                         mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0]+translate)%MapWidth,0,this.origCarPositions[i][2]]);
-                        this.carPositions[i][0]=(this.origCarPositions[i][0]+translate%MapWidth;
+                        this.carPositions[i][0]=(this.origCarPositions[i][0]+translate%MapWidth);
                     }
   
                     mat4.rotateY(CarMat, CarMat, Math.PI/2);

@@ -10373,9 +10373,6 @@ function (_super) {
     }, _a["dog"] = {
       url: 'models/dog/dog.obj',
       type: 'text'
-    }, _a["car"] = {
-      url: 'models/polycar/polycar.obj',
-      type: 'text'
     }, _a["grass"] = {
       url: 'images/Grass/Grass.jfif',
       type: 'image'
@@ -10447,6 +10444,7 @@ function (_super) {
     this.controller.update(deltaTime);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.program.use();
+    var numberOfRoads = 0;
     var VP = this.camera.ViewProjectionMatrix;
     this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
     this.program.setUniform3fv("cam_position", this.camera.position); // Send light properties
@@ -10488,19 +10486,22 @@ function (_super) {
           this.program.setUniform1f("material.shininess", 2);
           this.program.setUniform1i('texture_sampler', 0);
           this.meshes['road'].draw(this.gl.TRIANGLES);
+          numberOfRoads++;
         }
       }
     }
 
     for (var i = 0; i < this.origCarPositions.length; i++) {
       var CarMat = gl_matrix_1.mat4.create();
-      var translate_1 = this.carStep * this.incrementalValue * this.carSpeed;
+      var zFactor = this.origCarPositions[i][2] / 100 % 2 + 1; //Adds a factor to the speed according to the lane of the car to randomize speeds(the +1 at the end to ensure the value is not zero)
+
+      var translate_1 = this.carStep * this.incrementalValue * this.carSpeed * zFactor;
       var MapWidth = this.blockSize * this.levelMap[0].length * 2; //translate cars in their direction
 
       if (this.origCarPositions[i][2] / (2 * this.blockSize) % 2) {
-        var translate_2 = this.carStep * this.carSpeed * this.incrementalValue % MapWidth;
+        var translate_2 = this.carStep * this.carSpeed * this.incrementalValue * zFactor % MapWidth;
         gl_matrix_1.mat4.translate(CarMat, CarMat, [MapWidth - translate_2, 0, this.origCarPositions[i][2]]);
-        this.carPositions[i][0] = this.blockSize * this.levelMap[0].length * 2 - translate_2;
+        this.carPositions[i][0] = MapWidth - translate_2;
       } else {
         gl_matrix_1.mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0] + translate_1) % MapWidth, 0, this.origCarPositions[i][2]]);
         this.carPositions[i][0] = this.origCarPositions[i][0] + translate_1 % MapWidth;
@@ -10636,7 +10637,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54680" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54982" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
