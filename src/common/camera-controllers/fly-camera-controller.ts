@@ -52,6 +52,7 @@ export default class FlyCameraController {
             if(this.input.isKeyJustDown("q")) movement[1] += 50;
             if(this.input.isKeyJustDown("e")) movement[1] -= 50;
             vec3.add(this.PlayerPos, this.PlayerPos, movement);
+            //console.log(this.PlayerPos);
             this.camera.position[2] = this.PlayerPos[2];
             this.camera.position[0] = this.PlayerPos[0];
             this.camera.direction=vec3.fromValues(0,-0.8323,0.554197);

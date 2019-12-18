@@ -6,7 +6,6 @@ layout(location=3) in vec3 normal;
 
 out vec4 vertexColor; // Since vertex shaders do not draw, we need to pass the color data to the fragment shader
 out vec2 v_texcoord;
-
 out vec3 v_normal;
 out vec3 v_view;
 
