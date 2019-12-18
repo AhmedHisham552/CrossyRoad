@@ -28,8 +28,8 @@ export default class CrossyRoad extends Scene{
     blockSize = 25;
     carPositions: Array<vec3> = [];
     origCarPositions:Array<vec3>=[];
-    carStep=this.blockSize;
-    carSpeed=0.01;
+    carStep=10;
+    carSpeed=1;
     // This will store our material properties
     material = {
         diffuse: vec3.fromValues(0.5,0.3,0.1),
@@ -217,7 +217,6 @@ export default class CrossyRoad extends Scene{
                     if(firstCheck&&secondCheck){
                         this.end(); //temporarily till we figure out how to stop the drawing loop
                     }
-                    this.incrementalValue++;
         }
  
         let MatPig = mat4.create();
@@ -229,7 +228,7 @@ export default class CrossyRoad extends Scene{
 
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['pigtex']);
         this.meshes['Pig'].draw(this.gl.TRIANGLES);
-
+        this.incrementalValue++;
     }
 
 

@@ -10338,8 +10338,8 @@ function (_super) {
     _this.blockSize = 25;
     _this.carPositions = [];
     _this.origCarPositions = [];
-    _this.carStep = _this.blockSize;
-    _this.carSpeed = 0.01; // This will store our material properties
+    _this.carStep = 10;
+    _this.carSpeed = 1; // This will store our material properties
 
     _this.material = {
       diffuse: gl_matrix_1.vec3.fromValues(0.5, 0.3, 0.1),
@@ -10530,8 +10530,6 @@ function (_super) {
       if (firstCheck && secondCheck) {
         this.end(); //temporarily till we figure out how to stop the drawing loop
       }
-
-      this.incrementalValue++;
     }
 
     var MatPig = gl_matrix_1.mat4.create();
@@ -10542,6 +10540,7 @@ function (_super) {
     this.program.setUniform1f("material.shininess", 1);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['pigtex']);
     this.meshes['Pig'].draw(this.gl.TRIANGLES);
+    this.incrementalValue++;
   };
 
   CrossyRoad.prototype.end = function () {
