@@ -10260,14 +10260,16 @@ function (_super) {
     _this.textures = {};
     _this.current_texture = 0;
     _this.playerOrientation = "Front";
-    _this.motionLocked = 1;
+    _this.motionLocked = 0;
+    _this.motionDirection = 0;
     _this.blockSize = 25;
     _this.carPositions = [];
     _this.origCarPositions = [];
-    _this.carSpeeds = []; //Car translation variables
+    _this.carSpeeds = [];
+    _this.carStep = 10;
+    _this.carSpeed = 1; //Car translation variables
 
     _this.incrementalValue = 0;
-    _this.carStep = 10;
     _this.NormalcarSpeed = 1;
     _this.FastCarSpeed = 2; // This will store our material properties
 
@@ -10335,6 +10337,8 @@ function (_super) {
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
     this.gl.clearColor(1.0, 1.0, 1.0, 1);
+    this.motionDirection = 0;
+    this.motionLocked = 0;
   };
 
   CrossyRoad.prototype.draw = function (deltaTime) {
@@ -10351,7 +10355,7 @@ function (_super) {
     }
 
     this.incrementalValue++;
-    this.checkForMovement();
+    if (this.motionLocked == 0) this.checkForMovement();else if (this.motionLocked == 1) this.transitionPlayerTo();
   };
 
   CrossyRoad.prototype.end = function () {
@@ -10377,42 +10381,37 @@ function (_super) {
     }
   };
 
-  CrossyRoad.prototype.transitionPlayerTo = function (pos, direction) {
+  CrossyRoad.prototype.transitionPlayerTo = function () {
     var originalPos = this.PlayerPos;
-    var EPS = 10;
+    var delta = 10;
+    console.log(this.PlayerPos);
+    console.log(this.positionToTranslateTo);
 
-    while (true) {
-      console.log(gl_matrix_1.vec3.dist(this.PlayerPos, pos));
-      if (gl_matrix_1.vec3.dist(this.PlayerPos, pos) <= EPS) break;
-      console.log(this.PlayerPos);
-      console.log(pos);
-
-      switch (direction) {
-        case 1:
-          this.PlayerPos[2] = originalPos[2] + performance.now() * 0.0001;
-          break;
-
-        case 2:
-          this.PlayerPos[2] = originalPos[2] - performance.now() * 0.0001;
-          break;
-
-        case 3:
-          this.PlayerPos[0] = originalPos[0] - performance.now() * 0.0001;
-          break;
-
-        case 4:
-          this.PlayerPos[0] = originalPos[0] + performance.now() * 0.0001;
-          break;
-      }
-
-      this.camera.position[2] = this.PlayerPos[2];
-      this.camera.position[0] = this.PlayerPos[0];
-      this.lightAndCameraUniforms();
-      this.drawLevel();
-      this.MoveAndCheckColl();
-      console.log("test");
-      this.drawPlayer();
+    if (gl_matrix_1.vec3.equals(this.PlayerPos, this.positionToTranslateTo)) {
+      this.motionLocked = 0;
+      return;
     }
+
+    switch (this.motionDirection) {
+      case 1:
+        this.PlayerPos[2] += delta;
+        break;
+
+      case 2:
+        this.PlayerPos[2] -= delta;
+        break;
+
+      case 3:
+        this.PlayerPos[0] -= delta;
+        break;
+
+      case 4:
+        this.PlayerPos[0] += delta;
+        break;
+    }
+
+    this.camera.position[2] = this.PlayerPos[2];
+    this.camera.position[0] = this.PlayerPos[0];
   };
 
   CrossyRoad.prototype.checkForMovement = function () {
@@ -10429,19 +10428,22 @@ function (_super) {
       if (input.isKeyJustDown("w")) {
         movement[2] += 50;
         this.playerOrientation = "Front";
-        this.transitionPlayerTo(movement, 1);
+        this.motionDirection = 1;
+        this.motionLocked = 1;
       }
 
       if (input.isKeyJustDown("s")) {
         movement[2] -= 50;
         this.playerOrientation = "Back";
-        this.transitionPlayerTo(movement, 2);
+        this.motionDirection = 2;
+        this.motionLocked = 1;
       }
 
       if (input.isKeyJustDown("d")) {
         movement[0] -= 50;
         this.playerOrientation = "Right";
-        this.transitionPlayerTo(movement, 3);
+        this.motionDirection = 3;
+        this.motionLocked = 1;
       }
 
       ;
@@ -10449,13 +10451,12 @@ function (_super) {
       if (input.isKeyJustDown("a")) {
         movement[0] += 50;
         this.playerOrientation = "Left";
-        this.transitionPlayerTo(movement, 4);
+        this.motionDirection = 4;
+        this.motionLocked = 1;
       }
 
-      ; //vec3.add(this.PlayerPos, this.PlayerPos, movement);
-
-      this.camera.position[2] = this.PlayerPos[2];
-      this.camera.position[0] = this.PlayerPos[0];
+      ;
+      this.positionToTranslateTo = gl_matrix_1.vec3.clone(movement);
     }
   };
 
@@ -10591,13 +10592,22 @@ function (_super) {
   CrossyRoad.prototype.drawPlayer = function () {
     //Assure player is inside map boundaries
     if (this.PlayerPos[0] > this.maximumX) {
-      this.PlayerPos[0] -= this.blockSize;
+      this.PlayerPos[0] = this.maximumX - this.blockSize;
+      this.motionLocked = 0;
+      this.camera.position[2] = this.PlayerPos[2];
+      this.camera.position[0] = this.PlayerPos[0];
     } else if (this.PlayerPos[0] < this.minimumX) {
-      this.PlayerPos[0] += this.blockSize;
+      this.PlayerPos[0] = this.minimumX + this.blockSize;
+      this.motionLocked = 0;
+      this.camera.position[2] = this.PlayerPos[2];
+      this.camera.position[0] = this.PlayerPos[0];
     }
 
     if (this.PlayerPos[2] < 0) {
       this.PlayerPos[2] = 0;
+      this.motionLocked = 0;
+      this.camera.position[2] = this.PlayerPos[2];
+      this.camera.position[0] = this.PlayerPos[0];
     }
 
     var MatPig = gl_matrix_1.mat4.create();
@@ -10695,7 +10705,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59900" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53819" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
