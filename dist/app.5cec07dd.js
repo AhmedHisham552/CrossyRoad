@@ -10682,6 +10682,44 @@ function (_super) {
     controls.innerHTML = "";
   };
 
+  CrossyRoad.prototype.transitionPlayerTo = function (pos, direction) {
+    var originalPos = this.PlayerPos;
+    var EPS = 10;
+
+    while (true) {
+      console.log(gl_matrix_1.vec3.dist(this.PlayerPos, pos));
+      if (gl_matrix_1.vec3.dist(this.PlayerPos, pos) <= EPS) break;
+      console.log(this.PlayerPos);
+      console.log(pos);
+
+      switch (direction) {
+        case 1:
+          this.PlayerPos[2] = originalPos[2] + performance.now() * 0.0001;
+          break;
+
+        case 2:
+          this.PlayerPos[2] = originalPos[2] - performance.now() * 0.0001;
+          break;
+
+        case 3:
+          this.PlayerPos[0] = originalPos[0] - performance.now() * 0.0001;
+          break;
+
+        case 4:
+          this.PlayerPos[0] = originalPos[0] + performance.now() * 0.0001;
+          break;
+      }
+
+      this.camera.position[2] = this.PlayerPos[2];
+      this.camera.position[0] = this.PlayerPos[0];
+      this.lightAndCameraUniforms();
+      this.drawLevel();
+      this.MoveAndCheckColl();
+      console.log("test");
+      this.drawPlayer();
+    }
+  };
+
   CrossyRoad.prototype.checkForMovement = function () {
     var input = this.game.input;
 
@@ -10691,20 +10729,24 @@ function (_super) {
 
     if (input.isPointerLocked()) {
       var movement = gl_matrix_1.vec3.create();
+      movement = gl_matrix_1.vec3.clone(this.PlayerPos);
 
       if (input.isKeyJustDown("w")) {
         movement[2] += 50;
         this.playerOrientation = "Front";
+        this.transitionPlayerTo(movement, 1);
       }
 
       if (input.isKeyJustDown("s")) {
         movement[2] -= 50;
         this.playerOrientation = "Back";
+        this.transitionPlayerTo(movement, 2);
       }
 
       if (input.isKeyJustDown("d")) {
         movement[0] -= 50;
         this.playerOrientation = "Right";
+        this.transitionPlayerTo(movement, 3);
       }
 
       ;
@@ -10712,10 +10754,11 @@ function (_super) {
       if (input.isKeyJustDown("a")) {
         movement[0] += 50;
         this.playerOrientation = "Left";
+        this.transitionPlayerTo(movement, 4);
       }
 
-      ;
-      gl_matrix_1.vec3.add(this.PlayerPos, this.PlayerPos, movement);
+      ; //vec3.add(this.PlayerPos, this.PlayerPos, movement);
+
       this.camera.position[2] = this.PlayerPos[2];
       this.camera.position[0] = this.PlayerPos[0];
     }
