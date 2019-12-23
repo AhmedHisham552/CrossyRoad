@@ -10233,7 +10233,6 @@ function () {
       var movement = gl_matrix_1.vec3.create();
 
       if (this.input.isKeyJustDown("w")) {
-        movement[2] += 50;
         this.Front = true;
         this.Back = false;
         this.Right = false;
@@ -10241,7 +10240,6 @@ function () {
       }
 
       if (this.input.isKeyJustDown("s")) {
-        movement[2] -= 50;
         this.Front = false;
         this.Back = true;
         this.Right = false;
@@ -10249,7 +10247,6 @@ function () {
       }
 
       if (this.input.isKeyJustDown("d")) {
-        movement[0] -= 50;
         this.Front = false;
         this.Back = false;
         this.Right = true;
@@ -10259,17 +10256,14 @@ function () {
       ;
 
       if (this.input.isKeyJustDown("a")) {
-        movement[0] += 50;
         this.Front = false;
         this.Back = false;
         this.Right = false;
         this.Left = true;
       }
 
-      ;
-      if (this.input.isKeyJustDown("q")) movement[1] += 50;
-      if (this.input.isKeyJustDown("e")) movement[1] -= 50;
-      gl_matrix_1.vec3.add(this.PlayerPos, this.PlayerPos, movement); //console.log(this.PlayerPos);
+      ; //vec3.add(this.PlayerPos, this.PlayerPos, movement);
+      //console.log(this.PlayerPos);
 
       this.camera.position[2] = this.PlayerPos[2];
       this.camera.position[0] = this.PlayerPos[0];
@@ -10664,7 +10658,8 @@ function (_super) {
     _this.carPositions = [];
     _this.origCarPositions = [];
     _this.carStep = 10;
-    _this.carSpeed = 1; // This will store our material properties
+    _this.carSpeed = 1;
+    _this.motionLocked = 1; // This will store our material properties
 
     _this.material = {
       diffuse: gl_matrix_1.vec3.fromValues(0.5, 0.3, 0.1),
@@ -10894,6 +10889,7 @@ function (_super) {
     }
 
     this.incrementalValue++;
+    this.checkForMovement();
   };
 
   CrossyRoad.prototype.end = function () {
@@ -10933,6 +10929,39 @@ function (_super) {
   CrossyRoad.prototype.clearControls = function () {
     var controls = document.querySelector('#controls');
     controls.innerHTML = "";
+  };
+
+  CrossyRoad.prototype.checkForMovement = function () {
+    var input = this.game.input;
+
+    if (input.isButtonJustDown(0)) {
+      input.requestPointerLock();
+    }
+
+    if (input.isPointerLocked()) {
+      var movement = gl_matrix_1.vec3.create();
+
+      if (input.isKeyJustDown("w")) {
+        movement[2] += 50;
+      }
+
+      if (input.isKeyJustDown("s")) {
+        movement[2] -= 50;
+      }
+
+      if (input.isKeyJustDown("d")) {
+        movement[0] -= 50;
+      }
+
+      ;
+
+      if (input.isKeyJustDown("a")) {
+        movement[0] += 50;
+      }
+
+      ;
+      gl_matrix_1.vec3.add(this.PlayerPos, this.PlayerPos, movement);
+    }
   };
 
   return CrossyRoad;
@@ -10996,11 +11025,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-<<<<<<< HEAD
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49725" + '/');
-=======
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55804" + '/');
->>>>>>> a58fd63229632a68977b990b7101122f3a07157d
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53819" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

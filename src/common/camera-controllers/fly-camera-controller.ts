@@ -50,36 +50,32 @@ export default class FlyCameraController {
         if(this.input.isPointerLocked()){
             const movement = vec3.create();
             if(this.input.isKeyJustDown("w")) {
-                movement[2] += 50;
+                
                 this.Front=true;
                 this.Back=false;
                 this.Right=false;
                 this.Left=false;
             }
             if(this.input.isKeyJustDown("s")) {
-                movement[2] -= 50;
                 this.Front=false;
                 this.Back=true;
                 this.Right=false;
                 this.Left=false;
             }
             if(this.input.isKeyJustDown("d")) {
-                movement[0] -= 50;
                 this.Front=false;
                 this.Back=false;
                 this.Right=true;
                 this.Left=false;
             };
             if(this.input.isKeyJustDown("a")) {
-                movement[0] += 50
                 this.Front=false;
                 this.Back=false;
                 this.Right=false;
                 this.Left=true;
             };
-            if(this.input.isKeyJustDown("q")) movement[1] += 50;
-            if(this.input.isKeyJustDown("e")) movement[1] -= 50;
-            vec3.add(this.PlayerPos, this.PlayerPos, movement);
+
+            //vec3.add(this.PlayerPos, this.PlayerPos, movement);
             //console.log(this.PlayerPos);
             this.camera.position[2] = this.PlayerPos[2];
             this.camera.position[0] = this.PlayerPos[0];

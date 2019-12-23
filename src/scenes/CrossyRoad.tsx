@@ -6,6 +6,7 @@ import * as TextureUtils from '../common/texture-utils';
 import Camera from '../common/camera';
 import FlyCameraController from '../common/camera-controllers/fly-camera-controller';
 import { vec3, mat4 } from 'gl-matrix';
+import Input from '../common/input';
 import { Vector, Selector, Color, NumberInput } from '../common/dom-utils';
 import { createElement, StatelessProps, StatelessComponent } from 'tsx-create-element';
 import { translate } from 'gl-matrix/src/gl-matrix/mat2d';
@@ -28,8 +29,10 @@ export default class CrossyRoad extends Scene{
     levelLength;
     carPositions: Array<vec3> = [];
     origCarPositions:Array<vec3>=[];
+    input: Input;
     carStep=10;
     carSpeed=1;
+    motionLocked=1;
     //these two variables will store the value of minimum and maximum horizontal displacement for the player model
     minimumX;
     maximumX;
@@ -139,6 +142,8 @@ export default class CrossyRoad extends Scene{
         this.program.setUniform3f("material.specular", this.material.specular);
         this.program.setUniform3f("material.ambient", this.material.ambient);
         this.program.setUniform1f("material.shininess", this.material.shininess);
+
+
 
          for(let i = 0; i < this.levelMap.length; i++)
         {
@@ -254,6 +259,7 @@ export default class CrossyRoad extends Scene{
             this.start(); //restarts level upon finishing
         }
         this.incrementalValue++;
+        this.checkForMovement();
     }
 
 
@@ -288,5 +294,32 @@ export default class CrossyRoad extends Scene{
     private clearControls() {
         const controls = document.querySelector('#controls');
         controls.innerHTML = "";
+    }
+
+    private checkForMovement(){
+        var input = this.game.input;
+
+        if(input.isButtonJustDown(0)){
+            input.requestPointerLock();
+        }
+
+        if(input.isPointerLocked())
+        {
+            const movement = vec3.create();
+            if(input.isKeyJustDown("w")) {
+                movement[2] += 50;
+            }
+            if(input.isKeyJustDown("s")) {
+                movement[2] -= 50;
+            }
+            if(input.isKeyJustDown("d")) {
+                movement[0] -= 50;
+            };
+            if(input.isKeyJustDown("a")) {
+                movement[0] += 50
+            };
+
+            vec3.add(this.PlayerPos, this.PlayerPos, movement);
+        }
     }
 }
