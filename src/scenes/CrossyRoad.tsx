@@ -32,7 +32,7 @@ export default class CrossyRoad extends Scene{
     input: Input;
     carStep=10;
     carSpeed=1;
-    motionLocked=1;
+    motionLocked=0;
     //these two variables will store the value of minimum and maximum horizontal displacement for the player model
     minimumX;
     maximumX;
