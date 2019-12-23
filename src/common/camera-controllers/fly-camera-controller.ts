@@ -26,7 +26,7 @@ export default class FlyCameraController {
     pitchSensitivity: number = 0.001;
     movementSensitivity: number = 0.001;
 
-    constructor(camera: Camera, input: Input, PlayerPos: vec3,leftdir:boolean,rightdir:boolean,frontdir:boolean,backdir:boolean){
+    constructor(camera: Camera, input: Input, PlayerPos: vec3){
         this.camera = camera;
         camera.up = vec3.fromValues(0, 1, 0);
         this.input = input;
@@ -36,51 +36,11 @@ export default class FlyCameraController {
         this.pitch = Math.atan2(direction[1], vec2.len([direction[0], direction[1]]));
 
         this.PlayerPos = PlayerPos;
-        this.Left=leftdir;
-        this.Right=rightdir;
-        this.Front=frontdir;
-        this.Back=backdir;
     }
 
     public update(deltaTime: number) {
         if(this.input.isButtonJustDown(0)){
-            this.input.requestPointerLock();
-        }
-
-        if(this.input.isPointerLocked()){
-            const movement = vec3.create();
-            if(this.input.isKeyJustDown("w")) {
-                
-                this.Front=true;
-                this.Back=false;
-                this.Right=false;
-                this.Left=false;
-            }
-            if(this.input.isKeyJustDown("s")) {
-                this.Front=false;
-                this.Back=true;
-                this.Right=false;
-                this.Left=false;
-            }
-            if(this.input.isKeyJustDown("d")) {
-                this.Front=false;
-                this.Back=false;
-                this.Right=true;
-                this.Left=false;
-            };
-            if(this.input.isKeyJustDown("a")) {
-                this.Front=false;
-                this.Back=false;
-                this.Right=false;
-                this.Left=true;
-            };
-
-            //vec3.add(this.PlayerPos, this.PlayerPos, movement);
-            //console.log(this.PlayerPos);
-            this.camera.position[2] = this.PlayerPos[2];
-            this.camera.position[0] = this.PlayerPos[0];
-            this.camera.direction=vec3.fromValues(0,-0.8323,0.554197);
-
+            this.input.requestPointerLock()
         }
 
         if(this.input.isKeyJustDown("t")){

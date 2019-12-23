@@ -10187,106 +10187,6 @@ function () {
 }();
 
 exports.default = Camera;
-},{"gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"src/common/camera-controllers/fly-camera-controller.ts":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var gl_matrix_1 = require("gl-matrix"); // This is a controller to simulate a flying Camera
-// The controls are:
-// Hold Left-Mouse-Button and Drag to rotate camera
-// Hold Left-Mouse-Button + WASD to move and QE to go up or down
-// Mouse Wheel to zoom in or out 
-// Press T to toggle between Perspective and Orthographic
-
-
-var FlyCameraController =
-/** @class */
-function () {
-  function FlyCameraController(camera, input, PlayerPos, leftdir, rightdir, frontdir, backdir) {
-    this.yaw = 0;
-    this.pitch = 0;
-    this.yawSensitivity = 0.001;
-    this.pitchSensitivity = 0.001;
-    this.movementSensitivity = 0.001;
-    this.camera = camera;
-    camera.up = gl_matrix_1.vec3.fromValues(0, 1, 0);
-    this.input = input;
-    var direction = camera.direction;
-    this.yaw = Math.atan2(direction[2], direction[0]);
-    this.pitch = Math.atan2(direction[1], gl_matrix_1.vec2.len([direction[0], direction[1]]));
-    this.PlayerPos = PlayerPos;
-    this.Left = leftdir;
-    this.Right = rightdir;
-    this.Front = frontdir;
-    this.Back = backdir;
-  }
-
-  FlyCameraController.prototype.update = function (deltaTime) {
-    if (this.input.isButtonJustDown(0)) {
-      this.input.requestPointerLock();
-    }
-
-    if (this.input.isPointerLocked()) {
-      var movement = gl_matrix_1.vec3.create();
-
-      if (this.input.isKeyJustDown("w")) {
-        this.Front = true;
-        this.Back = false;
-        this.Right = false;
-        this.Left = false;
-      }
-
-      if (this.input.isKeyJustDown("s")) {
-        this.Front = false;
-        this.Back = true;
-        this.Right = false;
-        this.Left = false;
-      }
-
-      if (this.input.isKeyJustDown("d")) {
-        this.Front = false;
-        this.Back = false;
-        this.Right = true;
-        this.Left = false;
-      }
-
-      ;
-
-      if (this.input.isKeyJustDown("a")) {
-        this.Front = false;
-        this.Back = false;
-        this.Right = false;
-        this.Left = true;
-      }
-
-      ; //vec3.add(this.PlayerPos, this.PlayerPos, movement);
-      //console.log(this.PlayerPos);
-
-      this.camera.position[2] = this.PlayerPos[2];
-      this.camera.position[0] = this.PlayerPos[0];
-      this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.8323, 0.554197);
-    }
-
-    if (this.input.isKeyJustDown("t")) {
-      if (this.camera.type === 'orthographic') this.camera.type = 'perspective';else this.camera.type = 'orthographic';
-    }
-
-    if (this.camera.type === 'perspective') {
-      this.camera.perspectiveFoVy -= this.input.WheelDelta[1] * 0.001;
-      this.camera.perspectiveFoVy = Math.min(Math.PI, Math.max(Math.PI / 8, this.camera.perspectiveFoVy));
-    } else if (this.camera.type === 'orthographic') {
-      this.camera.orthographicHeight -= this.input.WheelDelta[1] * 0.01;
-      this.camera.perspectiveFoVy = Math.max(0.001, this.camera.perspectiveFoVy);
-    }
-  };
-
-  return FlyCameraController;
-}();
-
-exports.default = FlyCameraController;
 },{"gl-matrix":"node_modules/gl-matrix/esm/index.js"}],"node_modules/tsx-create-element/node_modules/html-tags/html-tags.json":[function(require,module,exports) {
 module.exports = ["a", "abbr", "address", "area", "article", "aside", "audio", "b", "base", "bdi", "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite", "code", "col", "colgroup", "data", "datalist", "dd", "del", "details", "dfn", "dialog", "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i", "iframe", "img", "input", "ins", "kbd", "keygen", "label", "legend", "li", "link", "main", "map", "mark", "math", "menu", "menuitem", "meta", "meter", "nav", "noscript", "object", "ol", "optgroup", "option", "output", "p", "param", "picture", "pre", "progress", "q", "rb", "rp", "rt", "rtc", "ruby", "s", "samp", "script", "section", "select", "slot", "small", "source", "span", "strong", "style", "sub", "summary", "sup", "svg", "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"];
 },{}],"node_modules/tsx-create-element/node_modules/html-tags/index.js":[function(require,module,exports) {
@@ -10636,8 +10536,6 @@ var TextureUtils = __importStar(require("../common/texture-utils"));
 
 var camera_1 = __importDefault(require("../common/camera"));
 
-var fly_camera_controller_1 = __importDefault(require("../common/camera-controllers/fly-camera-controller"));
-
 var gl_matrix_1 = require("gl-matrix");
 
 var tsx_create_element_1 = require("tsx-create-element");
@@ -10659,7 +10557,8 @@ function (_super) {
     _this.origCarPositions = [];
     _this.carStep = 10;
     _this.carSpeed = 1;
-    _this.motionLocked = 1; // This will store our material properties
+    _this.motionLocked = 1;
+    _this.playerOrientation = "Front"; // This will store our material properties
 
     _this.material = {
       diffuse: gl_matrix_1.vec3.fromValues(0.5, 0.3, 0.1),
@@ -10712,177 +10611,29 @@ function (_super) {
   };
 
   CrossyRoad.prototype.start = function () {
-    var levelString = this.game.loader.resources['inputLevel'];
-    this.levelMap = levelString.split("\n");
-    this.PlayerPos = gl_matrix_1.vec3.create();
-    this.PlayerPos = gl_matrix_1.vec3.fromValues(this.levelMap[0].length * this.blockSize, 0, 0);
-    this.levelLength = this.levelMap.length * this.blockSize * 2 - this.blockSize * 2;
-    this.minimumX = this.blockSize;
-    this.maximumX = this.levelMap[0].length * this.blockSize * 2 - this.blockSize * 4;
     this.program = new shader_program_1.default(this.gl);
     this.program.attach(this.game.loader.resources["vert"], this.gl.VERTEX_SHADER);
     this.program.attach(this.game.loader.resources["frag"], this.gl.FRAGMENT_SHADER);
     this.program.link();
-    this.meshes['Pig'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Pig"]);
-    this.meshes['dog'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
-    this.meshes['grass'] = MeshUtils.Plane(this.gl, {
-      min: [0, 0],
-      max: [1, 1]
-    });
-    this.meshes['road'] = MeshUtils.Plane(this.gl, {
-      min: [0, 0],
-      max: [1, 1]
-    });
-    this.camera = new camera_1.default();
-    this.camera.type = 'perspective';
-    this.camera.position = gl_matrix_1.vec3.fromValues(this.PlayerPos[0], 250, this.PlayerPos[2]);
-    this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.83, 0.554197);
-    this.camera.aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
-    this.controller = new fly_camera_controller_1.default(this.camera, this.game.input, this.PlayerPos, this.Left, this.Right, this.Front, this.Back);
+    this.loadLevel();
+    this.loadObjAndTex();
+    this.cameraInit();
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
-    this.textures['grass'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['grass']);
-    this.textures['road'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['road']);
-    this.textures['pigtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['pigtex']);
-    this.textures['dogtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['dogtex']);
     this.gl.clearColor(1.0, 1.0, 1.0, 1);
-
-    for (var i = 0; i < this.levelMap.length; i++) {
-      for (var j = 0; j < this.levelMap[i].length; j++) {
-        if (['C', 'F'].includes(this.levelMap[i].charAt(j))) {
-          this.origCarPositions.push(gl_matrix_1.vec3.fromValues(j * 2 * this.blockSize, 0, i * 2 * this.blockSize));
-          this.carPositions.push(gl_matrix_1.vec3.fromValues(j * 2 * this.blockSize, 0, i * 2 * this.blockSize));
-        }
-      }
-    }
-
-    console.log(this.carPositions.length);
   };
 
   CrossyRoad.prototype.draw = function (deltaTime) {
     // Here will draw the scene (deltaTime is the difference in time between this frame and the past frame in milliseconds)
-    this.controller.update(deltaTime);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.program.use();
-    var VP = this.camera.ViewProjectionMatrix;
-    this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
-    this.program.setUniform3fv("cam_position", this.camera.position); // Send light properties
-
-    this.program.setUniform3f("light.diffuse", this.light.diffuse);
-    this.program.setUniform3f("light.specular", this.light.specular);
-    this.program.setUniform3f("light.ambient", this.light.ambient);
-    this.program.setUniform3f("light.direction", gl_matrix_1.vec3.normalize(gl_matrix_1.vec3.create(), this.light.direction));
-    this.program.setUniform3f("material.diffuse", this.material.diffuse);
-    this.program.setUniform3f("material.specular", this.material.specular);
-    this.program.setUniform3f("material.ambient", this.material.ambient);
-    this.program.setUniform1f("material.shininess", this.material.shininess);
-
-    for (var i = 0; i < this.levelMap.length; i++) {
-      for (var j = 0; j < this.levelMap[i].length; j++) {
-        if (['G', 'T'].includes(this.levelMap[i].charAt(j))) {
-          var GroundMat = gl_matrix_1.mat4.create();
-          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]);
-          gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, 1, this.blockSize]); //game block = 25*25  
-
-          this.gl.activeTexture(this.gl.TEXTURE0);
-          this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['grass']);
-          this.program.setUniformMatrix4fv("M", false, GroundMat);
-          this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), GroundMat));
-          this.program.setUniform1i('texture_sampler', 0);
-          this.program.setUniform1f("material.shininess", 1);
-          this.meshes['grass'].draw(this.gl.TRIANGLES);
-        } else if (['R', 'C', 'F'].includes(this.levelMap[i].charAt(j))) {
-          var GroundMat = gl_matrix_1.mat4.create();
-          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]);
-          gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, 1, this.blockSize]); //game block = 25*25  
-
-          gl_matrix_1.mat4.rotateY(GroundMat, GroundMat, Math.PI / 2);
-          this.gl.activeTexture(this.gl.TEXTURE0);
-          this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['road']);
-          this.program.setUniformMatrix4fv("M", false, GroundMat);
-          this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), GroundMat)); // Model inverse transpose for lighting
-
-          this.program.setUniform1f("material.shininess", 2);
-          this.program.setUniform1i('texture_sampler', 0);
-          this.meshes['road'].draw(this.gl.TRIANGLES);
-        }
-      }
-    }
-
-    for (var i = 0; i < this.origCarPositions.length; i++) {
-      var CarMat = gl_matrix_1.mat4.create();
-      var zFactor = this.origCarPositions[i][2] / 100 % 2 + 1; //Adds a factor to the speed according to the lane of the car to randomize speeds(the +1 at the end to ensure the value is not zero)
-
-      var translate_1 = this.carStep * this.incrementalValue * this.carSpeed * zFactor;
-      var MapWidth = this.blockSize * this.levelMap[0].length * 2 - this.blockSize * 2; //translate cars in their direction
-
-      if (this.origCarPositions[i][2] / (2 * this.blockSize) % 2) {
-        var translate_2 = this.carStep * this.carSpeed * this.incrementalValue * zFactor % MapWidth;
-        gl_matrix_1.mat4.translate(CarMat, CarMat, [MapWidth - translate_2, 0, this.origCarPositions[i][2]]);
-        this.carPositions[i][0] = MapWidth - translate_2;
-      } else {
-        gl_matrix_1.mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0] + translate_1) % MapWidth, 0, this.origCarPositions[i][2]]);
-        this.carPositions[i][0] = (this.origCarPositions[i][0] + translate_1) % MapWidth;
-      }
-
-      gl_matrix_1.mat4.rotateY(CarMat, CarMat, Math.PI / 2);
-      gl_matrix_1.mat4.rotateX(CarMat, CarMat, -Math.PI / 2);
-      if (this.origCarPositions[i][2] / (2 * this.blockSize) % 2) //if a car is in an odd lane, rotate it
-        gl_matrix_1.mat4.rotateZ(CarMat, CarMat, Math.PI);
-      this.gl.activeTexture(this.gl.TEXTURE0);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['dogtex']);
-      this.program.setUniformMatrix4fv("M", false, CarMat);
-      this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), CarMat)); // Model inverse transpose for lighting
-
-      this.program.setUniform1f("material.shininess", 3);
-      this.program.setUniform1i('texture_sampler', 0);
-      this.meshes['dog'].draw(this.gl.TRIANGLES); //Here we check for collision with the current car
-
-      var rangepos = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] + 10, 0, this.PlayerPos[2] + 30); //positive margin for floating point error
-
-      var rangeneg = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] - 10, 0, this.PlayerPos[2] - 30); //negative margin for floating point error 
-
-      var firstCheck = this.carPositions[i][2] <= rangepos[2] && this.carPositions[i][2] >= rangeneg[2]; //Check if Car's Z component is in the collision range of player 
-
-      var secondCheck = this.carPositions[i][0] <= rangepos[0] && this.carPositions[i][0] >= rangeneg[0]; //Check if Car's X component is in the collision range of player position
-
-      if (firstCheck && secondCheck) {
-        this.end();
-        this.start(); //restart game upon losing
-      }
-    } //Assure that the player doesn't go outside the map boundaries
-
-
-    if (this.PlayerPos[0] > this.maximumX) {
-      this.PlayerPos[0] -= this.blockSize;
-    } else if (this.PlayerPos[0] < this.minimumX) {
-      this.PlayerPos[0] += this.blockSize;
-    }
-
-    if (this.PlayerPos[2] < 0) {
-      this.PlayerPos[2] = 0;
-    }
-
-    var MatPig = gl_matrix_1.mat4.create();
-    gl_matrix_1.mat4.translate(MatPig, MatPig, this.PlayerPos);
-
-    if (this.controller.Left) {
-      gl_matrix_1.mat4.rotateY(MatPig, MatPig, 1.57);
-    } else if (this.controller.Back) {
-      gl_matrix_1.mat4.rotateY(MatPig, MatPig, Math.PI);
-    } else if (this.controller.Right) {
-      gl_matrix_1.mat4.rotateY(MatPig, MatPig, -1.57);
-    }
-
-    this.program.setUniformMatrix4fv("M", false, MatPig);
-    this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), MatPig)); // Model inverse transpose for lighting
-
-    this.program.setUniform1f("material.shininess", 1);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['pigtex']);
-    this.meshes['Pig'].draw(this.gl.TRIANGLES); //Checks if the player finished the level
+    this.lightAndCameraUniforms();
+    this.drawLevel();
+    this.MoveAndCheckColl();
+    this.drawPlayer(); //Checks if the player finished the level
 
     if (this.PlayerPos[2] == this.levelLength) {
       this.start(); //restarts level upon finishing
@@ -10943,32 +10694,207 @@ function (_super) {
 
       if (input.isKeyJustDown("w")) {
         movement[2] += 50;
+        this.playerOrientation = "Front";
       }
 
       if (input.isKeyJustDown("s")) {
         movement[2] -= 50;
+        this.playerOrientation = "Back";
       }
 
       if (input.isKeyJustDown("d")) {
         movement[0] -= 50;
+        this.playerOrientation = "Right";
       }
 
       ;
 
       if (input.isKeyJustDown("a")) {
         movement[0] += 50;
+        this.playerOrientation = "Left";
       }
 
       ;
       gl_matrix_1.vec3.add(this.PlayerPos, this.PlayerPos, movement);
+      this.camera.position[2] = this.PlayerPos[2];
+      this.camera.position[0] = this.PlayerPos[0];
     }
+  };
+
+  CrossyRoad.prototype.loadLevel = function () {
+    var levelString = this.game.loader.resources['inputLevel'];
+    this.levelMap = levelString.split("\n");
+    this.PlayerPos = gl_matrix_1.vec3.create();
+    this.PlayerPos = gl_matrix_1.vec3.fromValues(this.levelMap[0].length * this.blockSize, 0, 0);
+    this.levelLength = this.levelMap.length * this.blockSize * 2 - this.blockSize * 2;
+    this.minimumX = this.blockSize;
+    this.maximumX = this.levelMap[0].length * this.blockSize * 2 - this.blockSize * 4; //load car positions
+
+    for (var i = 0; i < this.levelMap.length; i++) {
+      for (var j = 0; j < this.levelMap[i].length; j++) {
+        if (['C', 'F'].includes(this.levelMap[i].charAt(j))) {
+          this.origCarPositions.push(gl_matrix_1.vec3.fromValues(j * 2 * this.blockSize, 0, i * 2 * this.blockSize));
+          this.carPositions.push(gl_matrix_1.vec3.fromValues(j * 2 * this.blockSize, 0, i * 2 * this.blockSize));
+        }
+      }
+    }
+  };
+
+  CrossyRoad.prototype.loadObjAndTex = function () {
+    this.meshes['Pig'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Pig"]);
+    this.meshes['dog'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
+    this.meshes['grass'] = MeshUtils.Plane(this.gl, {
+      min: [0, 0],
+      max: [1, 1]
+    });
+    this.meshes['road'] = MeshUtils.Plane(this.gl, {
+      min: [0, 0],
+      max: [1, 1]
+    });
+    this.textures['grass'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['grass']);
+    this.textures['road'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['road']);
+    this.textures['pigtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['pigtex']);
+    this.textures['dogtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['dogtex']);
+  };
+
+  CrossyRoad.prototype.cameraInit = function () {
+    this.camera = new camera_1.default();
+    this.camera.type = 'perspective';
+    this.camera.position = gl_matrix_1.vec3.fromValues(this.PlayerPos[0], 250, this.PlayerPos[2]);
+    this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.83, 0.554197);
+    this.camera.aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
+  };
+
+  CrossyRoad.prototype.drawLevel = function () {
+    for (var i = 0; i < this.levelMap.length; i++) {
+      for (var j = 0; j < this.levelMap[i].length; j++) {
+        if (['G', 'T'].includes(this.levelMap[i].charAt(j))) {
+          var GroundMat = gl_matrix_1.mat4.create();
+          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]);
+          gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, 1, this.blockSize]); //game block = 25*25  
+
+          this.gl.activeTexture(this.gl.TEXTURE0);
+          this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['grass']);
+          this.program.setUniformMatrix4fv("M", false, GroundMat);
+          this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), GroundMat));
+          this.program.setUniform1i('texture_sampler', 0);
+          this.program.setUniform1f("material.shininess", 1);
+          this.meshes['grass'].draw(this.gl.TRIANGLES);
+        } else if (['R', 'C', 'F'].includes(this.levelMap[i].charAt(j))) {
+          var GroundMat = gl_matrix_1.mat4.create();
+          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]);
+          gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, 1, this.blockSize]); //game block = 25*25  
+
+          gl_matrix_1.mat4.rotateY(GroundMat, GroundMat, Math.PI / 2);
+          this.gl.activeTexture(this.gl.TEXTURE0);
+          this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['road']);
+          this.program.setUniformMatrix4fv("M", false, GroundMat);
+          this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), GroundMat)); // Model inverse transpose for lighting
+
+          this.program.setUniform1f("material.shininess", 2);
+          this.program.setUniform1i('texture_sampler', 0);
+          this.meshes['road'].draw(this.gl.TRIANGLES);
+        }
+      }
+    }
+  };
+
+  CrossyRoad.prototype.MoveAndCheckColl = function () {
+    for (var i = 0; i < this.origCarPositions.length; i++) {
+      var CarMat = gl_matrix_1.mat4.create();
+      var zFactor = this.origCarPositions[i][2] / 100 % 2 + 1; //Adds a factor to the speed according to the lane of the car to randomize speeds(the +1 at the end to ensure the value is not zero)
+
+      var translate_1 = this.carStep * this.incrementalValue * this.carSpeed * zFactor;
+      var MapWidth = this.blockSize * this.levelMap[0].length * 2 - this.blockSize * 2; //translate cars in their direction
+
+      if (this.origCarPositions[i][2] / (2 * this.blockSize) % 2) {
+        var translate_2 = this.carStep * this.carSpeed * this.incrementalValue * zFactor % MapWidth;
+        gl_matrix_1.mat4.translate(CarMat, CarMat, [MapWidth - translate_2, 0, this.origCarPositions[i][2]]);
+        this.carPositions[i][0] = MapWidth - translate_2;
+      } else {
+        gl_matrix_1.mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0] + translate_1) % MapWidth, 0, this.origCarPositions[i][2]]);
+        this.carPositions[i][0] = (this.origCarPositions[i][0] + translate_1) % MapWidth;
+      }
+
+      gl_matrix_1.mat4.rotateY(CarMat, CarMat, Math.PI / 2);
+      gl_matrix_1.mat4.rotateX(CarMat, CarMat, -Math.PI / 2);
+      if (this.origCarPositions[i][2] / (2 * this.blockSize) % 2) //if a car is in an odd lane, rotate it
+        gl_matrix_1.mat4.rotateZ(CarMat, CarMat, Math.PI);
+      this.gl.activeTexture(this.gl.TEXTURE0);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['dogtex']);
+      this.program.setUniformMatrix4fv("M", false, CarMat);
+      this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), CarMat)); // Model inverse transpose for lighting
+
+      this.program.setUniform1f("material.shininess", 3);
+      this.program.setUniform1i('texture_sampler', 0);
+      this.meshes['dog'].draw(this.gl.TRIANGLES); //Here we check for collision with the current car
+
+      var rangepos = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] + 10, 0, this.PlayerPos[2] + 30); //positive margin for floating point error
+
+      var rangeneg = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] - 10, 0, this.PlayerPos[2] - 30); //negative margin for floating point error 
+
+      var firstCheck = this.carPositions[i][2] <= rangepos[2] && this.carPositions[i][2] >= rangeneg[2]; //Check if Car's Z component is in the collision range of player 
+
+      var secondCheck = this.carPositions[i][0] <= rangepos[0] && this.carPositions[i][0] >= rangeneg[0]; //Check if Car's X component is in the collision range of player position
+
+      if (firstCheck && secondCheck) {
+        this.end();
+        this.start(); //restart game upon losing
+      }
+    }
+  };
+
+  CrossyRoad.prototype.drawPlayer = function () {
+    //Assure player is inside map boundaries
+    if (this.PlayerPos[0] > this.maximumX) {
+      this.PlayerPos[0] -= this.blockSize;
+    } else if (this.PlayerPos[0] < this.minimumX) {
+      this.PlayerPos[0] += this.blockSize;
+    }
+
+    if (this.PlayerPos[2] < 0) {
+      this.PlayerPos[2] = 0;
+    }
+
+    var MatPig = gl_matrix_1.mat4.create();
+    gl_matrix_1.mat4.translate(MatPig, MatPig, this.PlayerPos);
+
+    if (this.playerOrientation == "Left") {
+      gl_matrix_1.mat4.rotateY(MatPig, MatPig, 1.57);
+    } else if (this.playerOrientation == "Back") {
+      gl_matrix_1.mat4.rotateY(MatPig, MatPig, Math.PI);
+    } else if (this.playerOrientation == "Right") {
+      gl_matrix_1.mat4.rotateY(MatPig, MatPig, -1.57);
+    }
+
+    this.program.setUniformMatrix4fv("M", false, MatPig);
+    this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), MatPig)); // Model inverse transpose for lighting
+
+    this.program.setUniform1f("material.shininess", 1);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['pigtex']);
+    this.meshes['Pig'].draw(this.gl.TRIANGLES);
+  };
+
+  CrossyRoad.prototype.lightAndCameraUniforms = function () {
+    var VP = this.camera.ViewProjectionMatrix;
+    this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
+    this.program.setUniform3fv("cam_position", this.camera.position); // Send light properties
+
+    this.program.setUniform3f("light.diffuse", this.light.diffuse);
+    this.program.setUniform3f("light.specular", this.light.specular);
+    this.program.setUniform3f("light.ambient", this.light.ambient);
+    this.program.setUniform3f("light.direction", gl_matrix_1.vec3.normalize(gl_matrix_1.vec3.create(), this.light.direction));
+    this.program.setUniform3f("material.diffuse", this.material.diffuse);
+    this.program.setUniform3f("material.specular", this.material.specular);
+    this.program.setUniform3f("material.ambient", this.material.ambient);
+    this.program.setUniform1f("material.shininess", this.material.shininess);
   };
 
   return CrossyRoad;
 }(game_1.Scene);
 
 exports.default = CrossyRoad;
-},{"../common/game":"src/common/game.ts","../common/shader-program":"src/common/shader-program.ts","../common/mesh-utils":"src/common/mesh-utils.ts","../common/texture-utils":"src/common/texture-utils.ts","../common/camera":"src/common/camera.ts","../common/camera-controllers/fly-camera-controller":"src/common/camera-controllers/fly-camera-controller.ts","gl-matrix":"node_modules/gl-matrix/esm/index.js","tsx-create-element":"node_modules/tsx-create-element/dist/es6/index.js"}],"src/app.ts":[function(require,module,exports) {
+},{"../common/game":"src/common/game.ts","../common/shader-program":"src/common/shader-program.ts","../common/mesh-utils":"src/common/mesh-utils.ts","../common/texture-utils":"src/common/texture-utils.ts","../common/camera":"src/common/camera.ts","gl-matrix":"node_modules/gl-matrix/esm/index.js","tsx-create-element":"node_modules/tsx-create-element/dist/es6/index.js"}],"src/app.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -11025,7 +10951,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53819" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57583" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
