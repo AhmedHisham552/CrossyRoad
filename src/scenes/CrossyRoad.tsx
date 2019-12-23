@@ -35,8 +35,16 @@ export default class CrossyRoad extends Scene{
     levelLength;
     carPositions: Array<vec3> = [];
     origCarPositions:Array<vec3>=[];
+<<<<<<< HEAD
     carSpeeds:Array<number>=[];
     //Map boundaries
+=======
+    input: Input;
+    carStep=10;
+    carSpeed=1;
+    motionLocked=0;
+    //these two variables will store the value of minimum and maximum horizontal displacement for the player model
+>>>>>>> 64a6622fd4d1aaed6b3880a9b86f1dab7a1e88ce
     minimumX;
     maximumX;
 
@@ -324,13 +332,13 @@ export default class CrossyRoad extends Scene{
         mat4.translate(MatPig,MatPig,this.PlayerPos);
 
         if(this.playerOrientation=="Left"){
-            mat4.rotateY(MatPig,MatPig,1.57);
+            mat4.rotateY(MatPig,MatPig,Math.PI*90/180);
         }
         else if(this.playerOrientation=="Back"){
             mat4.rotateY(MatPig,MatPig,Math.PI);
         }
         else if(this.playerOrientation=="Right"){
-            mat4.rotateY(MatPig,MatPig,-1.57);
+            mat4.rotateY(MatPig,MatPig,-Math.PI*90/180);
         }
 
         this.program.setUniformMatrix4fv("M", false, MatPig);
