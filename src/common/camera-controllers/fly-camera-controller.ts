@@ -15,7 +15,10 @@ export default class FlyCameraController {
     camera: Camera;
     input: Input;
     PlayerPos: vec3;
-
+    Left: boolean
+    Right:boolean
+    Front:boolean
+    Back:boolean
     yaw: number = 0;
     pitch: number = 0;
 
@@ -23,7 +26,7 @@ export default class FlyCameraController {
     pitchSensitivity: number = 0.001;
     movementSensitivity: number = 0.001;
 
-    constructor(camera: Camera, input: Input, PlayerPos: vec3){
+    constructor(camera: Camera, input: Input, PlayerPos: vec3,leftdir:boolean,rightdir:boolean,frontdir:boolean,backdir:boolean){
         this.camera = camera;
         camera.up = vec3.fromValues(0, 1, 0);
         this.input = input;
@@ -33,6 +36,10 @@ export default class FlyCameraController {
         this.pitch = Math.atan2(direction[1], vec2.len([direction[0], direction[1]]));
 
         this.PlayerPos = PlayerPos;
+        this.Left=leftdir;
+        this.Right=rightdir;
+        this.Front=frontdir;
+        this.Back=backdir;
     }
 
     public update(deltaTime: number) {
@@ -42,10 +49,34 @@ export default class FlyCameraController {
 
         if(this.input.isPointerLocked()){
             const movement = vec3.create();
-            if(this.input.isKeyJustDown("w")) movement[2] += 50;
-            if(this.input.isKeyJustDown("s")) movement[2] -= 50;
-            if(this.input.isKeyJustDown("d")) movement[0] -= 50;
-            if(this.input.isKeyJustDown("a")) movement[0] += 50;
+            if(this.input.isKeyJustDown("w")) {
+                movement[2] += 50;
+                this.Front=true;
+                this.Back=false;
+                this.Right=false;
+                this.Left=false;
+            }
+            if(this.input.isKeyJustDown("s")) {
+                movement[2] -= 50;
+                this.Front=false;
+                this.Back=true;
+                this.Right=false;
+                this.Left=false;
+            }
+            if(this.input.isKeyJustDown("d")) {
+                movement[0] -= 50;
+                this.Front=false;
+                this.Back=false;
+                this.Right=true;
+                this.Left=false;
+            };
+            if(this.input.isKeyJustDown("a")) {
+                movement[0] += 50
+                this.Front=false;
+                this.Back=false;
+                this.Right=false;
+                this.Left=true;
+            };
             if(this.input.isKeyJustDown("q")) movement[1] += 50;
             if(this.input.isKeyJustDown("e")) movement[1] -= 50;
             vec3.add(this.PlayerPos, this.PlayerPos, movement);

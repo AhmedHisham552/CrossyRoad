@@ -10205,7 +10205,7 @@ var gl_matrix_1 = require("gl-matrix"); // This is a controller to simulate a fl
 var FlyCameraController =
 /** @class */
 function () {
-  function FlyCameraController(camera, input, PlayerPos) {
+  function FlyCameraController(camera, input, PlayerPos, leftdir, rightdir, frontdir, backdir) {
     this.yaw = 0;
     this.pitch = 0;
     this.yawSensitivity = 0.001;
@@ -10218,6 +10218,10 @@ function () {
     this.yaw = Math.atan2(direction[2], direction[0]);
     this.pitch = Math.atan2(direction[1], gl_matrix_1.vec2.len([direction[0], direction[1]]));
     this.PlayerPos = PlayerPos;
+    this.Left = leftdir;
+    this.Right = rightdir;
+    this.Front = frontdir;
+    this.Back = backdir;
   }
 
   FlyCameraController.prototype.update = function (deltaTime) {
@@ -10227,10 +10231,42 @@ function () {
 
     if (this.input.isPointerLocked()) {
       var movement = gl_matrix_1.vec3.create();
-      if (this.input.isKeyJustDown("w")) movement[2] += 50;
-      if (this.input.isKeyJustDown("s")) movement[2] -= 50;
-      if (this.input.isKeyJustDown("d")) movement[0] -= 50;
-      if (this.input.isKeyJustDown("a")) movement[0] += 50;
+
+      if (this.input.isKeyJustDown("w")) {
+        movement[2] += 50;
+        this.Front = true;
+        this.Back = false;
+        this.Right = false;
+        this.Left = false;
+      }
+
+      if (this.input.isKeyJustDown("s")) {
+        movement[2] -= 50;
+        this.Front = false;
+        this.Back = true;
+        this.Right = false;
+        this.Left = false;
+      }
+
+      if (this.input.isKeyJustDown("d")) {
+        movement[0] -= 50;
+        this.Front = false;
+        this.Back = false;
+        this.Right = true;
+        this.Left = false;
+      }
+
+      ;
+
+      if (this.input.isKeyJustDown("a")) {
+        movement[0] += 50;
+        this.Front = false;
+        this.Back = false;
+        this.Right = false;
+        this.Left = true;
+      }
+
+      ;
       if (this.input.isKeyJustDown("q")) movement[1] += 50;
       if (this.input.isKeyJustDown("e")) movement[1] -= 50;
       gl_matrix_1.vec3.add(this.PlayerPos, this.PlayerPos, movement); //console.log(this.PlayerPos);
@@ -10707,7 +10743,7 @@ function (_super) {
     this.camera.position = gl_matrix_1.vec3.fromValues(this.PlayerPos[0], 250, this.PlayerPos[2]);
     this.camera.direction = gl_matrix_1.vec3.fromValues(0, -0.83, 0.554197);
     this.camera.aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
-    this.controller = new fly_camera_controller_1.default(this.camera, this.game.input, this.PlayerPos);
+    this.controller = new fly_camera_controller_1.default(this.camera, this.game.input, this.PlayerPos, this.Left, this.Right, this.Front, this.Back);
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.BACK);
     this.gl.frontFace(this.gl.CCW);
@@ -10837,6 +10873,15 @@ function (_super) {
 
     var MatPig = gl_matrix_1.mat4.create();
     gl_matrix_1.mat4.translate(MatPig, MatPig, this.PlayerPos);
+
+    if (this.controller.Left) {
+      gl_matrix_1.mat4.rotateY(MatPig, MatPig, 1.57);
+    } else if (this.controller.Back) {
+      gl_matrix_1.mat4.rotateY(MatPig, MatPig, Math.PI);
+    } else if (this.controller.Right) {
+      gl_matrix_1.mat4.rotateY(MatPig, MatPig, -1.57);
+    }
+
     this.program.setUniformMatrix4fv("M", false, MatPig);
     this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), MatPig)); // Model inverse transpose for lighting
 
@@ -10951,7 +10996,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54982" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55804" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

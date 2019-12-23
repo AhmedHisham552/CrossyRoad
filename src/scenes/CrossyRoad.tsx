@@ -89,7 +89,7 @@ export default class CrossyRoad extends Scene{
         this.camera.direction=vec3.fromValues(0,-0.83,0.554197);
         this.camera.aspectRatio=this.gl.drawingBufferWidth/this.gl.drawingBufferHeight;
 
-        this.controller = new FlyCameraController(this.camera, this.game.input, this.PlayerPos);
+        this.controller = new FlyCameraController(this.camera, this.game.input, this.PlayerPos,this.Left,this.Right,this.Front,this.Back);
 
         this.gl.enable(this.gl.CULL_FACE);
         this.gl.cullFace(this.gl.BACK);
@@ -124,6 +124,7 @@ export default class CrossyRoad extends Scene{
         this.controller.update(deltaTime);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.program.use();
+        
         let VP = this.camera.ViewProjectionMatrix;
         this.program.setUniformMatrix4fv("VP", false, this.camera.ViewProjectionMatrix);
         this.program.setUniform3fv("cam_position",this.camera.position);
@@ -232,11 +233,19 @@ export default class CrossyRoad extends Scene{
         }
         let MatPig = mat4.create();
         mat4.translate(MatPig,MatPig,this.PlayerPos);
-
+        if(this.controller.Left){
+            mat4.rotateY(MatPig,MatPig,1.57);
+        }
+        else if(this.controller.Back){
+            mat4.rotateY(MatPig,MatPig,Math.PI);
+        }
+        else if(this.controller.Right){
+            mat4.rotateY(MatPig,MatPig,-1.57);
+        }
         this.program.setUniformMatrix4fv("M", false, MatPig);
         this.program.setUniformMatrix4fv("M_it",true,mat4.invert(mat4.create(),MatPig));    // Model inverse transpose for lighting
         this.program.setUniform1f("material.shininess", 1);
-
+        
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['pigtex']);
         this.meshes['Pig'].draw(this.gl.TRIANGLES);
         
