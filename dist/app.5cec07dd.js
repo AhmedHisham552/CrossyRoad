@@ -10305,6 +10305,9 @@ function (_super) {
     }, _a["dog"] = {
       url: 'models/dog/dog.obj',
       type: 'text'
+    }, _a["tree"] = {
+      url: 'models/tree/tree.obj',
+      type: 'text'
     }, _a["grass"] = {
       url: 'images/Grass/Grass.jfif',
       type: 'image'
@@ -10313,6 +10316,9 @@ function (_super) {
       type: 'image'
     }, _a["dogtex"] = {
       url: 'models/dog/dogtex.jpg',
+      type: 'image'
+    }, _a["treetex"] = {
+      url: 'models/tree/treetex.jpg',
       type: 'image'
     }, _a["road"] = {
       url: 'images/Grass/road.jpg',
@@ -10488,6 +10494,7 @@ function (_super) {
   CrossyRoad.prototype.loadObjAndTex = function () {
     this.meshes['Pig'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["Pig"]);
     this.meshes['dog'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
+    this.meshes['tree'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["tree"]);
     this.meshes['grass'] = MeshUtils.Plane(this.gl, {
       min: [0, 0],
       max: [1, 1]
@@ -10539,6 +10546,23 @@ function (_super) {
           this.program.setUniform1f("material.shininess", 2);
           this.program.setUniform1i('texture_sampler', 0);
           this.meshes['road'].draw(this.gl.TRIANGLES);
+        }
+
+        if (['T'].includes(this.levelMap[i].charAt(j))) {
+          var GroundMat = gl_matrix_1.mat4.create();
+          gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, i * 2 * this.blockSize]);
+          gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, this.blockSize, this.blockSize]); //game block = 25*25  
+
+          gl_matrix_1.mat4.rotateY(GroundMat, GroundMat, Math.PI / 2);
+          gl_matrix_1.mat4.rotateZ(GroundMat, GroundMat, Math.PI);
+          this.gl.activeTexture(this.gl.TEXTURE0);
+          this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['grass']);
+          this.program.setUniformMatrix4fv("M", false, GroundMat);
+          this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), GroundMat)); // Model inverse transpose for lighting
+
+          this.program.setUniform1f("material.shininess", 2);
+          this.program.setUniform1i('texture_sampler', 0);
+          this.meshes['tree'].draw(this.gl.TRIANGLES);
         }
       }
     }
@@ -10705,7 +10729,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53819" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55761" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

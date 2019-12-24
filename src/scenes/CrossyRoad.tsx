@@ -74,11 +74,15 @@ export default class CrossyRoad extends Scene{
             ["frag"]:{url:'shaders/crossy.frag', type:'text'},
             ["Pig"]:{url:'models/Pig/pig.obj',type:'text'},
             ["dog"]:{url:'models/dog/dog.obj', type: 'text'},
+            ["tree"]:{url:'models/tree/tree.obj', type: 'text'},
             ["grass"]:{url:'images/Grass/Grass.jfif',type:'image'},
             ['pigtex']:{url:'/models/Pig/pig.png',type:'image'},
             ["dogtex"]:{url:'models/dog/dogtex.jpg', type: 'image'},
+            ["treetex"]:{url:'models/tree/treetex.jpg',type:'image'},
             ["road"]:{url:'images/Grass/road.jpg',type:'image'},
-            ["inputLevel"]:{url:'Levels/level1.txt',type:'text'}
+            ["inputLevel"]:{url:'Levels/level1.txt',type:'text'},
+
+
 
         });
     }
@@ -256,6 +260,7 @@ export default class CrossyRoad extends Scene{
     private loadObjAndTex():void{
         this.meshes['Pig']=MeshUtils.LoadOBJMesh(this.gl,this.game.loader.resources["Pig"]);
         this.meshes['dog']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["dog"]);
+        this.meshes['tree']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["tree"]);
         this.meshes['grass']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
         this.meshes['road']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
 
@@ -309,6 +314,23 @@ export default class CrossyRoad extends Scene{
                     this.program.setUniform1i('texture_sampler',0);
 
                     this.meshes['road'].draw(this.gl.TRIANGLES);
+                }
+                if(['T'].includes(this.levelMap[i].charAt(j)))
+                {
+                    let GroundMat=mat4.create();    
+                    mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(i)*2*this.blockSize]);
+                    mat4.scale(GroundMat,GroundMat,[this.blockSize,this.blockSize,this.blockSize]);              //game block = 25*25  
+                    mat4.rotateY(GroundMat, GroundMat, Math.PI/2);
+                    mat4.rotateZ(GroundMat, GroundMat, Math.PI);
+                    this.gl.activeTexture(this.gl.TEXTURE0);
+                    this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['grass']);
+
+                    this.program.setUniformMatrix4fv("M",false,GroundMat);
+                    this.program.setUniformMatrix4fv("M_it",true,mat4.invert(mat4.create(),GroundMat)); // Model inverse transpose for lighting
+                    this.program.setUniform1f("material.shininess", 2);
+                    this.program.setUniform1i('texture_sampler',0);
+
+                    this.meshes['tree'].draw(this.gl.TRIANGLES);
                 }
             }
         }
