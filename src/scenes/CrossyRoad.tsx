@@ -33,6 +33,7 @@ export default class CrossyRoad extends Scene{
     carPositions: Array<vec3> = [];
     origCarPositions:Array<vec3>=[];
     carSpeeds:Array<number>=[];
+    treePositions:Array<vec3>=[];
     //Map boundaries
     input: Input;
     carStep=10;
@@ -98,7 +99,7 @@ export default class CrossyRoad extends Scene{
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
 
-        this.gl.clearColor(0.0,1.0,1.0,1);
+        this.gl.clearColor(1.0,1.0,1.0,1);
         this.motionDirection=0;
         this.motionLocked=0;
     } 
@@ -108,7 +109,7 @@ export default class CrossyRoad extends Scene{
        // Here will draw the scene (deltaTime is the difference in time between this frame and the past frame in milliseconds)
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.program.use();
-
+        console.log(this.PlayerPos);
         this.lightAndCameraUniforms();
         this.drawLevel();
         this.MoveAndCheckColl();
@@ -215,8 +216,14 @@ export default class CrossyRoad extends Scene{
                 this.motionDirection = 4;
                 this.motionLocked = 1;
             };
-
-            this.positionToTranslateTo = vec3.clone(movement);
+            let flag=true;
+            for(let i=0;i<this.treePositions.length;i++){
+                if(movement==this.treePositions[i]){
+                    flag=false;
+                }
+            }
+            if(flag)
+                this.positionToTranslateTo = vec3.clone(movement);
 
         }
     }
@@ -244,6 +251,10 @@ export default class CrossyRoad extends Scene{
                     else{
                         this.carSpeeds.push(this.FastCarSpeed);
                     }
+                }
+                else if(['T'].includes(this.levelMap[i].charAt(j))){
+                    this.treePositions.push(vec3.fromValues(j*2*this.blockSize,0,i*2*this.blockSize));
+                    console.log(this.treePositions[i]);
                 }
             }
         }

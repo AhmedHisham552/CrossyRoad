@@ -10266,6 +10266,7 @@ function (_super) {
     _this.carPositions = [];
     _this.origCarPositions = [];
     _this.carSpeeds = [];
+    _this.treePositions = [];
     _this.carStep = 10;
     _this.carSpeed = 1; //Car translation variables
 
@@ -10339,7 +10340,7 @@ function (_super) {
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
-    this.gl.clearColor(0.0, 1.0, 1.0, 1);
+    this.gl.clearColor(1.0, 1.0, 1.0, 1);
     this.motionDirection = 0;
     this.motionLocked = 0;
   };
@@ -10348,6 +10349,7 @@ function (_super) {
     // Here will draw the scene (deltaTime is the difference in time between this frame and the past frame in milliseconds)
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.program.use();
+    console.log(this.PlayerPos);
     this.lightAndCameraUniforms();
     this.drawLevel();
     this.MoveAndCheckColl();
@@ -10459,7 +10461,15 @@ function (_super) {
       }
 
       ;
-      this.positionToTranslateTo = gl_matrix_1.vec3.clone(movement);
+      var flag = true;
+
+      for (var i = 0; i < this.treePositions.length; i++) {
+        if (movement == this.treePositions[i]) {
+          flag = false;
+        }
+      }
+
+      if (flag) this.positionToTranslateTo = gl_matrix_1.vec3.clone(movement);
     }
   };
 
@@ -10483,6 +10493,9 @@ function (_super) {
           } else {
             this.carSpeeds.push(this.FastCarSpeed);
           }
+        } else if (['T'].includes(this.levelMap[i].charAt(j))) {
+          this.treePositions.push(gl_matrix_1.vec3.fromValues(j * 2 * this.blockSize, 0, i * 2 * this.blockSize));
+          console.log(this.treePositions[i]);
         }
       }
     }
