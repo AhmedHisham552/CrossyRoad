@@ -33,6 +33,7 @@ export default class CrossyRoad extends Scene{
     carPositions: Array<vec3> = [];
     origCarPositions:Array<vec3>=[];
     carSpeeds:Array<number>=[];
+    treePositions:Array<vec3>=[];
     //Map boundaries
     input: Input;
     carStep=10;
@@ -76,7 +77,7 @@ export default class CrossyRoad extends Scene{
             ["dogtex"]:{url:'models/dog/dogtex.jpg', type: 'image'},
             ["treetex"]:{url:'models/tree/treetex.jpg',type:'image'},
             ["road"]:{url:'images/Grass/road.jpg',type:'image'},
-            ["inputLevel"]:{url:'Levels/level1.txt',type:'text'},
+            ["inputLevel"]:{url:'Levels/level2.txt',type:'text'},
             ["finish"]:{url:'images/finish.png',type:'image'}
 
         });
@@ -100,7 +101,7 @@ export default class CrossyRoad extends Scene{
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
 
-        this.gl.clearColor(0.0,1.0,1.0,1);
+        this.gl.clearColor(1.0,1.0,1.0,1);
         this.motionDirection=0;
         this.motionLocked=0;
     } 
@@ -110,7 +111,7 @@ export default class CrossyRoad extends Scene{
        // Here will draw the scene (deltaTime is the difference in time between this frame and the past frame in milliseconds)
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.program.use();
-
+        console.log(this.PlayerPos);
         this.lightAndCameraUniforms();
         this.drawLevel();
         this.MoveAndCheckColl();
@@ -217,8 +218,18 @@ export default class CrossyRoad extends Scene{
                 this.motionDirection = 4;
                 this.motionLocked = 1;
             };
-
-            this.positionToTranslateTo = vec3.clone(movement);
+            let flag=true;
+            for(let i=0;i<this.treePositions.length;i++){
+                let rangepos = vec3.fromValues(movement[0]+25,0,0);    //positive margin for floating point error
+                let rangeneg  = vec3.fromValues(movement[0]-25,0,0);
+                let firstCheck:boolean = (this.treePositions[i][2]==movement[2]);
+                let secondCheck:boolean = (this.treePositions[i][0]<=rangepos[0]&&this.treePositions[i][0]>=rangeneg[0]);
+                if(secondCheck&&firstCheck){
+                    flag=false;
+                }
+            }
+            if(flag)
+                this.positionToTranslateTo = vec3.clone(movement);
 
         }
     }
@@ -246,6 +257,10 @@ export default class CrossyRoad extends Scene{
                     else{
                         this.carSpeeds.push(this.FastCarSpeed);
                     }
+                }
+                else if(['T'].includes(this.levelMap[i].charAt(j))){
+                    this.treePositions.push(vec3.fromValues(j*2*this.blockSize,0,i*2*this.blockSize));
+                    console.log(this.treePositions[i]);
                 }
             }
         }
