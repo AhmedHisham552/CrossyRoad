@@ -10320,6 +10320,9 @@ function (_super) {
     }, _a["inputLevel"] = {
       url: 'Levels/level1.txt',
       type: 'text'
+    }, _a["finish"] = {
+      url: 'images/finish.png',
+      type: 'image'
     }, _a));
   };
 
@@ -10336,7 +10339,7 @@ function (_super) {
     this.gl.frontFace(this.gl.CCW);
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
-    this.gl.clearColor(1.0, 1.0, 1.0, 1);
+    this.gl.clearColor(0.0, 1.0, 1.0, 1);
     this.motionDirection = 0;
     this.motionLocked = 0;
   };
@@ -10350,7 +10353,7 @@ function (_super) {
     this.MoveAndCheckColl();
     this.drawPlayer(); //Checks if the player finished the level
 
-    if (this.PlayerPos[2] == this.levelLength) {
+    if (this.PlayerPos[2] == this.levelLength + 2 * this.blockSize) {
       this.start(); //restarts level upon finishing
     }
 
@@ -10496,10 +10499,15 @@ function (_super) {
       min: [0, 0],
       max: [1, 1]
     });
+    this.meshes['finish'] = MeshUtils.Plane(this.gl, {
+      min: [0, 0],
+      max: [1, 1]
+    });
     this.textures['grass'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['grass']);
     this.textures['road'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['road']);
     this.textures['pigtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['pigtex']);
     this.textures['dogtex'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['dogtex']);
+    this.textures['finishline'] = TextureUtils.LoadImage(this.gl, this.game.loader.resources['finish']);
   };
 
   CrossyRoad.prototype.cameraInit = function () {
@@ -10542,6 +10550,22 @@ function (_super) {
         }
       }
     }
+
+    for (var j = 0; j < this.levelMap[0].length - 1; j++) {
+      {
+        var GroundMat = gl_matrix_1.mat4.create();
+        gl_matrix_1.mat4.translate(GroundMat, GroundMat, [j * 2 * this.blockSize, 0, this.levelMap.length * 2 * this.blockSize]);
+        gl_matrix_1.mat4.scale(GroundMat, GroundMat, [this.blockSize, 1, this.blockSize]); //game block = 25*25  
+
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['finishline']);
+        this.program.setUniformMatrix4fv("M", false, GroundMat);
+        this.program.setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), GroundMat));
+        this.program.setUniform1i('texture_sampler', 0);
+        this.program.setUniform1f("material.shininess", 1);
+        this.meshes['finish'].draw(this.gl.TRIANGLES);
+      }
+    }
   };
 
   CrossyRoad.prototype.MoveAndCheckColl = function () {
@@ -10549,16 +10573,16 @@ function (_super) {
       var CarMat = gl_matrix_1.mat4.create();
       var zFactor = (this.origCarPositions[i][2] + this.levelLength) / this.levelLength; //Adds a factor to the speed according to the lane of the car
 
-      var translate_1 = this.carStep * this.incrementalValue * this.carSpeeds[i] * zFactor;
+      var translate = this.carStep * this.incrementalValue * this.carSpeeds[i] * zFactor;
       var MapWidth = this.blockSize * this.levelMap[0].length * 2 - this.blockSize * 2; //translate cars in their direction
 
       if (this.origCarPositions[i][2] / (2 * this.blockSize) % 2) {
-        var translate_2 = this.carStep * this.carSpeeds[i] * this.incrementalValue * zFactor % MapWidth;
-        gl_matrix_1.mat4.translate(CarMat, CarMat, [MapWidth - translate_2, 0, this.origCarPositions[i][2]]);
-        this.carPositions[i][0] = MapWidth - translate_2;
+        var translate_1 = this.carStep * this.carSpeeds[i] * this.incrementalValue * zFactor % MapWidth;
+        gl_matrix_1.mat4.translate(CarMat, CarMat, [MapWidth - translate_1, 0, this.origCarPositions[i][2]]);
+        this.carPositions[i][0] = MapWidth - translate_1;
       } else {
-        gl_matrix_1.mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0] + translate_1) % MapWidth, 0, this.origCarPositions[i][2]]);
-        this.carPositions[i][0] = (this.origCarPositions[i][0] + translate_1) % MapWidth;
+        gl_matrix_1.mat4.translate(CarMat, CarMat, [(this.origCarPositions[i][0] + translate) % MapWidth, 0, this.origCarPositions[i][2]]);
+        this.carPositions[i][0] = (this.origCarPositions[i][0] + translate) % MapWidth;
       }
 
       gl_matrix_1.mat4.rotateY(CarMat, CarMat, Math.PI / 2);
@@ -10574,9 +10598,9 @@ function (_super) {
       this.program.setUniform1i('texture_sampler', 0);
       this.meshes['dog'].draw(this.gl.TRIANGLES); //Here we check for collision with the current car
 
-      var rangepos = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] + 10, 0, this.PlayerPos[2] + 10); //positive margin for floating point error
+      var rangepos = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] + 30, 0, this.PlayerPos[2] + 30); //positive margin for floating point error
 
-      var rangeneg = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] - 10, 0, this.PlayerPos[2] - 10); //negative margin for floating point error 
+      var rangeneg = gl_matrix_1.vec3.fromValues(this.PlayerPos[0] - 30, 0, this.PlayerPos[2] - 30); //negative margin for floating point error 
 
       var firstCheck = this.carPositions[i][2] <= rangepos[2] && this.carPositions[i][2] >= rangeneg[2]; //Check if Car's Z component is in the collision range of player 
 
@@ -10705,7 +10729,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53819" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62779" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
