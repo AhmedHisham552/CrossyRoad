@@ -10326,6 +10326,9 @@ function (_super) {
     }, _a["inputLevel"] = {
       url: 'Levels/level1.txt',
       type: 'text'
+    }, _a["finish"] = {
+      url: 'images/finish.png',
+      type: 'image'
     }, _a));
   };
 
