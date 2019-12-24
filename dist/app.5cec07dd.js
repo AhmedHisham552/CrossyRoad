@@ -10325,7 +10325,7 @@ function (_super) {
       url: 'images/Grass/road.jpg',
       type: 'image'
     }, _a["inputLevel"] = {
-      url: 'Levels/level1.txt',
+      url: 'Levels/level2.txt',
       type: 'text'
     }, _a["finish"] = {
       url: 'images/finish.png',
@@ -10473,9 +10473,10 @@ function (_super) {
         var rangepos = gl_matrix_1.vec3.fromValues(movement[0] + 25, 0, 0); //positive margin for floating point error
 
         var rangeneg = gl_matrix_1.vec3.fromValues(movement[0] - 25, 0, 0);
+        var firstCheck = this.treePositions[i][2] == movement[2];
         var secondCheck = this.treePositions[i][0] <= rangepos[0] && this.treePositions[i][0] >= rangeneg[0];
 
-        if (secondCheck) {
+        if (secondCheck && firstCheck) {
           flag = false;
         }
       }

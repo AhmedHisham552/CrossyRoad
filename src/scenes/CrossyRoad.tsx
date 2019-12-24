@@ -77,7 +77,7 @@ export default class CrossyRoad extends Scene{
             ["dogtex"]:{url:'models/dog/dogtex.jpg', type: 'image'},
             ["treetex"]:{url:'models/tree/treetex.jpg',type:'image'},
             ["road"]:{url:'images/Grass/road.jpg',type:'image'},
-            ["inputLevel"]:{url:'Levels/level1.txt',type:'text'},
+            ["inputLevel"]:{url:'Levels/level2.txt',type:'text'},
             ["finish"]:{url:'images/finish.png',type:'image'}
 
         });
@@ -222,8 +222,9 @@ export default class CrossyRoad extends Scene{
             for(let i=0;i<this.treePositions.length;i++){
                 let rangepos = vec3.fromValues(movement[0]+25,0,0);    //positive margin for floating point error
                 let rangeneg  = vec3.fromValues(movement[0]-25,0,0);
+                let firstCheck:boolean = (this.treePositions[i][2]==movement[2]);
                 let secondCheck:boolean = (this.treePositions[i][0]<=rangepos[0]&&this.treePositions[i][0]>=rangeneg[0]);
-                if(secondCheck){
+                if(secondCheck&&firstCheck){
                     flag=false;
                 }
             }
