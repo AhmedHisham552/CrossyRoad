@@ -9,10 +9,6 @@ import { vec3, mat4 } from 'gl-matrix';
 import Input from '../common/input';
 import { Vector, Selector, Color, NumberInput } from '../common/dom-utils';
 import { createElement, StatelessProps, StatelessComponent } from 'tsx-create-element';
-import { translate } from 'gl-matrix/src/gl-matrix/mat2d';
-//import { Player } from '../Classes/Player';
-import { toRadian } from 'gl-matrix/src/gl-matrix/common';
-import { forEach } from 'gl-matrix/src/gl-matrix/vec4';
 
 export default class CrossyRoad extends Scene{
     //webgl variables
@@ -81,8 +77,7 @@ export default class CrossyRoad extends Scene{
             ["treetex"]:{url:'models/tree/treetex.jpg',type:'image'},
             ["road"]:{url:'images/Grass/road.jpg',type:'image'},
             ["inputLevel"]:{url:'Levels/level1.txt',type:'text'},
-
-
+            ["finish"]:{url:'images/finish.png',type:'image'}
 
         });
     }
@@ -105,7 +100,7 @@ export default class CrossyRoad extends Scene{
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
 
-        this.gl.clearColor(1.0,1.0,1.0,1);
+        this.gl.clearColor(0.0,1.0,1.0,1);
         this.motionDirection=0;
         this.motionLocked=0;
     } 
@@ -115,15 +110,14 @@ export default class CrossyRoad extends Scene{
        // Here will draw the scene (deltaTime is the difference in time between this frame and the past frame in milliseconds)
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.program.use();
-        
+
         this.lightAndCameraUniforms();
         this.drawLevel();
         this.MoveAndCheckColl();
-               
         this.drawPlayer();
 
         //Checks if the player finished the level
-        if(this.PlayerPos[2]==this.levelLength){
+        if(this.PlayerPos[2]==this.levelLength+2*this.blockSize){
             this.start(); //restarts level upon finishing
         }
         this.incrementalValue++;
@@ -263,11 +257,13 @@ export default class CrossyRoad extends Scene{
         this.meshes['tree']= MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["tree"]);
         this.meshes['grass']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
         this.meshes['road']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
+        this.meshes['finish']=MeshUtils.Plane(this.gl,{min:[0,0],max:[1,1]});
 
         this.textures['grass']= TextureUtils.LoadImage(this.gl,this.game.loader.resources['grass']);
         this.textures['road'] = TextureUtils.LoadImage(this.gl,this.game.loader.resources['road'])
         this.textures['pigtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['pigtex']);
         this.textures['dogtex']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['dogtex']);
+        this.textures['finishline']=TextureUtils.LoadImage(this.gl,this.game.loader.resources['finish']);
     }
 
     private cameraInit():void{
@@ -334,6 +330,25 @@ export default class CrossyRoad extends Scene{
                 }
             }
         }
+        for(let j = 0; j < this.levelMap[0].length-1; j++)
+        {
+            {
+                let GroundMat=mat4.create();    
+                mat4.translate(GroundMat, GroundMat, [(j)*2*this.blockSize,0,(this.levelMap.length)*2*this.blockSize]);
+                mat4.scale(GroundMat,GroundMat,[this.blockSize,1,this.blockSize]);              //game block = 25*25  
+                this.gl.activeTexture(this.gl.TEXTURE0);
+                this.gl.bindTexture(this.gl.TEXTURE_2D,this.textures['finishline']);
+
+                this.program.setUniformMatrix4fv("M",false,GroundMat);
+                this.program.setUniformMatrix4fv("M_it",true,mat4.invert(mat4.create(),GroundMat));
+                this.program.setUniform1i('texture_sampler',0);
+                this.program.setUniform1f("material.shininess", 1);
+
+                this.meshes['finish'].draw(this.gl.TRIANGLES);
+
+            }
+
+        }
     }
 
     private MoveAndCheckColl():void{
@@ -369,8 +384,8 @@ export default class CrossyRoad extends Scene{
             this.meshes['dog'].draw(this.gl.TRIANGLES);
 
             //Here we check for collision with the current car
-            let rangepos = vec3.fromValues(this.PlayerPos[0]+10,0,this.PlayerPos[2]+10);    //positive margin for floating point error
-            let rangeneg  = vec3.fromValues(this.PlayerPos[0]-10,0,this.PlayerPos[2]-10);   //negative margin for floating point error 
+            let rangepos = vec3.fromValues(this.PlayerPos[0]+30,0,this.PlayerPos[2]+30);    //positive margin for floating point error
+            let rangeneg  = vec3.fromValues(this.PlayerPos[0]-30,0,this.PlayerPos[2]-30);   //negative margin for floating point error 
 
             let firstCheck:boolean = (this.carPositions[i][2]<=rangepos[2]&&this.carPositions[i][2]>=rangeneg[2]); //Check if Car's Z component is in the collision range of player 
             let secondCheck:boolean = (this.carPositions[i][0]<=rangepos[0]&&this.carPositions[i][0]>=rangeneg[0]);  //Check if Car's X component is in the collision range of player position
