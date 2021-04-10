@@ -34,8 +34,7 @@ This game is controlled with WASD keys on the keyboard for moving forward, left,
 # Design your own level
 You can design your own level by using level maps.
 * Make a level map like the example shown below in a txt file
-* E.G.
-TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT
+* TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT
 RRRRRRRRRFRRRRRRRRRFRRRRRRRRFRRR
 RRRRRRFRRRRRRRFRRRRRRRRRRRRRRRRR
 TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT
