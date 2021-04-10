@@ -1,7 +1,19 @@
-## Steps to run
+
+
+# Tables of Contents
+- [Tables of Contents](#tables-of-contents)
+- [How to run](#how-to-run)
+- [Game rules](#game-rules)
+  - [Game controls](#game-controls)
+- [Screenshots](#screenshots)
+  - [Midgame](#midgame)
+- [Design your own level](#design-your-own-level)
+
+
+# How to run
 
 1. Install [Node.js](https://nodejs.org/en/) and [Visual Studio Code](https://code.visualstudio.com/).
-2. Open this lab folder in Visual Studio Code.
+2. Open the project in Visual Studio Code.
 3. Open a terminal (Terminal > New Terminal).
 4. run `npm install` . If it failed for any reason, try again.
 5. run `npm run watch` .
@@ -9,24 +21,31 @@
 
 **Note:** you can use yarn to enable caching so that you don't download all the packages with project. You can download yarn from [yarnpkg.com](https://yarnpkg.com/lang/en/). Then replace `npm install` with `yarn install` and `npm run watch` with `yarn watch`.
 
-**Debugging:** You will need the extension [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome). After running till Step 5 from [Steps to run](#steps-to-run), press F5 or click the Debug icon on the left bar then choose *"Launch Chrome against"* localhost" and click the *"Start Debugging"* button (play button). Now you can use breakpoints, watch, etc. The required configuration for the debugger is written in `.vscode/launch.json`.
+# Game rules
+You're playing with a pig, you need to reach the end of the map to win, it sounds simple but becareful from the hungry dogs crossing the street, they will eat you whenever they can and then you'll restart from the beginning.
+## Game controls
+This game is controlled with WASD keys on the keyboard for moving forward, left, backward, right respectively.
 
-## Files Structure
+# Screenshots
+## Midgame
+![](https://imgur.com/a/omz0vya)
+![](https://imgur.com/vxlSwEx)
+![](https://imgur.com/xhnKDK7)
 
-**index.html** is the webpage in which we run our app. It is the entry point of our app and it links to the main script file "app.ts"
 
-**app.ts** is the entry point of our code. It just initializes the game object, sets the scenes and fills the scene selector. It can be considered as the equivalent of the main function in C++.
-
-**game.ts** contains the *Game* class and the abstract *Scene* class. The game class is responsible for creating the WebGL2 context, running the game loop, managing scenes and running other helper classes such as the *Input* class and the *Loader* class. The *Scene* class is the base class of all the other scenes.
-
-**Loader.ts** and **input.ts** contain helper classes that handles fetching data from the webserver and capturing the user input.
-
-**shader-program.ts** contains the *ShaderProgram* class which contains some boilerplate code to loading shaders. It will be used extensively in every scene so we isolated it into a reusable class from the start.
-
-**mesh.ts** contains some boilerplate code for creating VAOs and VBOs. You can also use **mesh-utils.ts** to create some basic shapes (Rectangle, Cube).
-
-**camera.ts** contains a camera class to manage the variables for a camera. It can be used with one of the **camera-controllers** to create user-controlled camera.
-
-**scenes folder** contains the scenes of the game.
-
-**static folder** contains the assets and shader file for our game.
+# Design your own level
+You can design your own level by using level maps.
+* Make a level map like the example shown below in a txt file
+* E.G.
+TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT
+RRRRRRRRRFRRRRRRRRRFRRRRRRRRFRRR
+RRRRRRFRRRRRRRFRRRRRRRRRRRRRRRRR
+TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT
+RRRRRRFRRRRRRRFRRRRRRRRRRRRRRRRR
+TTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTT
+* The level map encoding is as follow
+    * (T) for trees
+    * (R) for Road
+    * (G) for grass
+    * (F) for initial dog locations
+* Then load your desired level map by changing inputLevel path in CrossyRoad.tsx to the desired input level.
