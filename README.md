@@ -6,7 +6,6 @@
 - [Game rules](#game-rules)
   - [Game controls](#game-controls)
 - [Screenshots](#screenshots)
-  - [Midgame](#midgame)
 - [Design your own level](#design-your-own-level)
 
 
@@ -27,10 +26,9 @@ You're playing with a pig, you need to reach the end of the map to win, it sound
 This game is controlled with WASD keys on the keyboard for moving forward, left, backward, right respectively.
 
 # Screenshots
-## Midgame
-![](https://imgur.com/a/omz0vya)
-![](https://imgur.com/vxlSwEx)
-![](https://imgur.com/xhnKDK7)
+![](https://i.imgur.com/N9yDGkt.jpg)
+![](https://i.imgur.com/vxlSwEx.jpg)
+![](https://i.imgur.com/xhnKDK7.gif)
 
 
 # Design your own level
